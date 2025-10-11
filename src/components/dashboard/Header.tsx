@@ -1,36 +1,39 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
 const DashboardHeader: React.FC = () => {
-  const router = useRouter();
   const { user, signOut } = useAuth();
 
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     await signOut();
-    router.push("/");
   };
 
   return (
-    <header className="sticky top-0 z-10 bg-[#0a0a0e]/70 backdrop-blur-sm border-b border-[#1a1a1a] px-4 sm:px-6 py-3 sm:py-4 ml-16 lg:ml-0">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-base sm:text-lg font-medium truncate">
-            Welcome, {user?.email?.split("@")[0] || "User"}
-          </h2>
-          <p className="text-xs sm:text-sm text-gray-500">
-            Last synced: Just now
-          </p>
+    <header className="sticky top-0 z-30 bg-[#1a1a1a] border-b border-gray-700 px-4 sm:px-6 py-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+          <h1 className="text-lg sm:text-xl font-semibold text-white">
+            Dashboard
+          </h1>
+          <div className="text-xs sm:text-sm text-gray-400">
+            Last synced: {new Date().toLocaleTimeString()}
+          </div>
         </div>
 
-        <button
-          onClick={handleLogout}
-          className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-white/5 hover:bg-white/10 border border-[#2a2a2a] rounded-lg transition-all whitespace-nowrap"
-        >
-          Logout
-        </button>
+        <div className="flex items-center space-x-3 sm:space-x-4 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="text-xs sm:text-sm text-gray-300 truncate">
+            Welcome, {user?.email?.split("@")[0] || "User"}
+          </div>
+
+          <button
+            onClick={handleSignOut}
+            className="px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-xs sm:text-sm"
+          >
+            Logout
+          </button>
+        </div>
       </div>
     </header>
   );

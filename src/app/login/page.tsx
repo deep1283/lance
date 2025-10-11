@@ -15,6 +15,19 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Check for error parameters in URL
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorParam = urlParams.get("error");
+    const detailsParam = urlParams.get("details");
+    if (errorParam) {
+      const errorMsg = detailsParam
+        ? `Login failed: ${errorParam} - ${detailsParam}`
+        : `Login failed: ${errorParam}`;
+      setError(errorMsg);
+    }
+  }, []);
+
   // Handle Phone OTP Send
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +84,7 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  // Handle Google OAuth
+  // Handle Google OAuth (Simple Supabase approach)
   const handleGoogleLogin = async () => {
     setLoading(true);
     setError("");
@@ -96,7 +109,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
@@ -112,7 +125,7 @@ const LoginPage: React.FC = () => {
 
       {/* Login Form */}
       <motion.div
-        className="relative z-10 w-full max-w-md mx-4 sm:mx-auto bg-white/10 backdrop-blur-lg rounded-3xl p-8 sm:p-10 shadow-2xl border border-white/20"
+        className="relative z-10 w-full max-w-md mx-auto bg-white/10 backdrop-blur-lg rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl border border-white/20"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}

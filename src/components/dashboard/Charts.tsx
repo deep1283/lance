@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -16,143 +15,222 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { Competitor } from "@/types/dashboard";
+import { ChartData, TimeSeriesData } from "@/types/dashboard";
+import { supabase } from "@/lib/supabase";
 
-interface ChartsProps {
-  competitors: Competitor[];
-}
+const DashboardCharts: React.FC = () => {
+  const [competitorActivity, setCompetitorActivity] = useState<ChartData[]>([]);
+  const [platformDistribution, setPlatformDistribution] = useState<ChartData[]>(
+    []
+  );
+  const [adTrends, setAdTrends] = useState<TimeSeriesData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const DashboardCharts: React.FC<ChartsProps> = ({ competitors }) => {
-  // Dummy data - will sync with real data later
-  const competitorActivity = competitors
-    .filter(Boolean)
-    .slice(0, 5)
-    .map((c) => ({
-      name: c?.name || "Unknown",
-      ads: Math.floor(Math.random() * 50) + 10,
-    }));
+  useEffect(() => {
+    fetchChartData();
+  }, []);
 
-  const platformData = [
-    { name: "Meta", value: 45, color: "#6c63ff" },
-    { name: "Google", value: 30, color: "#5a52d5" },
-    { name: "YouTube", value: 25, color: "#4a42c5" },
-  ];
+  const fetchChartData = async () => {
+    try {
+      // Get user's competitors
+      const { data: userCompetitors } = await supabase.from("user_competitors")
+        .select(`
+          competitor_id,
+          competitors (id, name)
+        `);
 
-  const weeklyTrend = [
-    { week: "Week 1", activity: 20 },
-    { week: "Week 2", activity: 35 },
-    { week: "Week 3", activity: 28 },
-    { week: "Week 4", activity: 45 },
-  ];
+      if (!userCompetitors) return;
+
+      const competitorIds = userCompetitors.map((uc) => uc.competitor_id);
+
+      // Fetch competitor activity data
+      const competitorActivityData = await Promise.all(
+        userCompetitors.map(async (uc: any) => {
+          const { count: adCount } = await supabase
+            .from("competitor_ads")
+            .select("*", { count: "exact", head: true })
+            .eq("competitor_id", uc.competitor_id);
+
+          const { count: creativeCount } = await supabase
+            .from("competitor_creatives")
+            .select("*", { count: "exact", head: true })
+            .eq("competitor_id", uc.competitor_id);
+
+          return {
+            name: uc.competitors.name,
+            value: (adCount || 0) + (creativeCount || 0),
+            color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+          };
+        })
+      );
+
+      // Fetch platform distribution
+      const { data: ads } = await supabase
+        .from("competitor_ads")
+        .select("platform")
+        .in("competitor_id", competitorIds);
+
+      const { data: creatives } = await supabase
+        .from("competitor_creatives")
+        .select("platform")
+        .in("competitor_id", competitorIds);
+
+      const platformCounts: { [key: string]: number } = {};
+
+      [...(ads || []), ...(creatives || [])].forEach((item) => {
+        const platform = item.platform || "Unknown";
+        platformCounts[platform] = (platformCounts[platform] || 0) + 1;
+      });
+
+      const platformData = Object.entries(platformCounts).map(
+        ([name, value]) => ({
+          name,
+          value,
+          color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+        })
+      );
+
+      // Generate sample trend data (last 7 days)
+      const trendData = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (6 - i));
+        return {
+          date: date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+          ads: Math.floor(Math.random() * 20) + 5,
+          creatives: Math.floor(Math.random() * 15) + 3,
+          engagement: Math.floor(Math.random() * 1000) + 100,
+        };
+      });
+
+      setCompetitorActivity(competitorActivityData);
+      setPlatformDistribution(platformData);
+      setAdTrends(trendData);
+    } catch (error) {
+      console.error("Error fetching chart data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-gray-800 rounded-lg p-6 animate-pulse">
+            <div className="h-4 bg-gray-700 rounded mb-4"></div>
+            <div className="h-64 bg-gray-700 rounded"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <h2 className="text-lg sm:text-xl font-semibold">Analytics</h2>
+    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+      {/* Competitor Activity */}
+      <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">
+          Competitor Activity
+        </h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={competitorActivity}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis
+              dataKey="name"
+              stroke="#9CA3AF"
+              fontSize={12}
+              tick={{ fill: "#9CA3AF" }}
+            />
+            <YAxis stroke="#9CA3AF" fontSize={12} tick={{ fill: "#9CA3AF" }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#1F2937",
+                border: "1px solid #374151",
+                borderRadius: "8px",
+                color: "#F9FAFB",
+              }}
+            />
+            <Bar dataKey="value" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Competitor Activity */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white/5 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-[#2a2a2a]"
-        >
-          <h3 className="text-base sm:text-lg font-medium mb-3 sm:mb-4">
-            Competitor Activity
-          </h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={competitorActivity}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-              <XAxis dataKey="name" stroke="#666" />
-              <YAxis stroke="#666" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#111",
-                  border: "1px solid #2a2a2a",
-                }}
-              />
-              <Bar dataKey="ads" fill="#6c63ff" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </motion.div>
+      {/* Video vs Image Distribution */}
+      <div className="bg-gray-800 rounded-lg p-4 sm:p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">
+          Video vs Image
+        </h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart
+            data={[
+              { name: "Video", value: 65 },
+              { name: "Image", value: 35 },
+            ]}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis
+              dataKey="name"
+              stroke="#9CA3AF"
+              fontSize={12}
+              tick={{ fill: "#9CA3AF" }}
+            />
+            <YAxis stroke="#9CA3AF" fontSize={12} tick={{ fill: "#9CA3AF" }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#1F2937",
+                border: "1px solid #374151",
+                borderRadius: "8px",
+                color: "#F9FAFB",
+              }}
+              formatter={(value) => [`${value}%`, ""]}
+            />
+            <Bar dataKey="value" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
-        {/* Platform Distribution */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white/5 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-[#2a2a2a]"
-        >
-          <h3 className="text-base sm:text-lg font-medium mb-3 sm:mb-4">
-            Platform Distribution
-          </h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={platformData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={90}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {platformData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#111",
-                  border: "1px solid #2a2a2a",
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="flex justify-center gap-4 mt-4">
-            {platformData.map((p) => (
-              <div key={p.name} className="flex items-center gap-2">
-                <span
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: p.color }}
-                />
-                <span className="text-sm text-gray-400">{p.name}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Weekly Trend */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4 }}
-          className="bg-white/5 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-[#2a2a2a] lg:col-span-2"
-        >
-          <h3 className="text-base sm:text-lg font-medium mb-3 sm:mb-4">
-            Ad Trend Over Time
-          </h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={weeklyTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a2a2a" />
-              <XAxis dataKey="week" stroke="#666" />
-              <YAxis stroke="#666" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#111",
-                  border: "1px solid #2a2a2a",
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="activity"
-                stroke="#6c63ff"
-                strokeWidth={2}
-                dot={{ fill: "#6c63ff", r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </motion.div>
+      {/* Ad Trend Over Time */}
+      <div className="bg-gray-800 rounded-lg p-6 lg:col-span-2 xl:col-span-1">
+        <h3 className="text-lg font-semibold text-white mb-4">
+          Ad Trend Over Time
+        </h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <LineChart data={adTrends}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+            <XAxis
+              dataKey="date"
+              stroke="#9CA3AF"
+              fontSize={12}
+              tick={{ fill: "#9CA3AF" }}
+            />
+            <YAxis stroke="#9CA3AF" fontSize={12} tick={{ fill: "#9CA3AF" }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#1F2937",
+                border: "1px solid #374151",
+                borderRadius: "8px",
+                color: "#F9FAFB",
+              }}
+            />
+            <Line
+              type="monotone"
+              dataKey="ads"
+              stroke="#8B5CF6"
+              strokeWidth={2}
+              dot={{ fill: "#8B5CF6", strokeWidth: 2, r: 4 }}
+            />
+            <Line
+              type="monotone"
+              dataKey="creatives"
+              stroke="#3B82F6"
+              strokeWidth={2}
+              dot={{ fill: "#3B82F6", strokeWidth: 2, r: 4 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

@@ -1,35 +1,77 @@
 "use client";
 
-import React, { useState } from "react";
-import Image from "next/image";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import lancelogo from "../../../public/assets/lancelogo.png";
-import lanceSymbol from "../../../public/assets/lanceIQ-symbol.png";
+import Image from "next/image";
 import { Competitor } from "@/types/dashboard";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
+import lancelogo from "../../../public/assets/lancelogo.png";
+import lancesymbol from "../../../public/assets/lanceIQ-symbol.png";
 
-interface SidebarProps {
-  competitors: Competitor[];
-}
-
-const DashboardSidebar: React.FC<SidebarProps> = ({ competitors }) => {
-  const pathname = usePathname();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [competitorsOpen, setCompetitorsOpen] = useState(true);
+const DashboardSidebar: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCompetitorsOpen, setIsCompetitorsOpen] = useState(true);
+  const [competitors, setCompetitors] = useState<Competitor[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const pathname = usePathname();
+  const { user } = useAuth();
 
-  const filteredCompetitors = competitors.filter((c) =>
-    c?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  useEffect(() => {
+    if (user) {
+      fetchCompetitors();
+    }
+  }, [user]);
+
+  const fetchCompetitors = async () => {
+    try {
+      if (!user) return;
+
+      // First get the user's competitors from user_competitors table
+      const { data: userCompetitors, error: userError } = await supabase
+        .from("user_competitors")
+        .select("competitor_id")
+        .eq("user_id", user.id);
+
+      if (userError) throw userError;
+
+      if (!userCompetitors || userCompetitors.length === 0) {
+        setCompetitors([]);
+        return;
+      }
+
+      // Then get the competitor details
+      const competitorIds = userCompetitors.map((uc) => uc.competitor_id);
+      const { data: competitorsData, error: competitorsError } = await supabase
+        .from("competitors")
+        .select("*")
+        .in("id", competitorIds)
+        .order("name");
+
+      if (competitorsError) throw competitorsError;
+      setCompetitors(competitorsData || []);
+    } catch (error) {
+      console.error("Error fetching competitors:", error);
+      setCompetitors([]);
+    }
+  };
+
+  const filteredCompetitors = competitors.filter((competitor) =>
+    competitor.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const isActive = (path: string) => pathname === path;
+  const isCompetitorActive = (competitorId: string) =>
+    pathname === `/dashboard/competitors/${competitorId}`;
 
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* Mobile Hamburger Button */}
       <button
-        onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-[#0a0a0e] border border-[#2a2a2a] rounded-lg"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="fixed top-4 left-4 z-50 lg:hidden p-2 bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg"
       >
         <svg
           className="w-6 h-6 text-white"
@@ -47,85 +89,132 @@ const DashboardSidebar: React.FC<SidebarProps> = ({ competitors }) => {
       </button>
 
       {/* Overlay for mobile */}
-      {isMobileOpen && (
+      {(isExpanded || isMobileMenuOpen) && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-30"
-          onClick={() => setIsMobileOpen(false)}
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={() => {
+            setIsExpanded(false);
+            setIsMobileMenuOpen(false);
+          }}
         />
       )}
 
-      {/* Sidebar */}
-      <motion.div
+      {/* Sidebar - Responsive */}
+      <div
+        className={`fixed left-0 top-0 h-full bg-[#0a0a0a] border-r border-[#1f1f1f] transition-all duration-300 z-40 ${
+          isExpanded || isMobileMenuOpen ? "w-64" : "w-16"
+        } lg:block ${isMobileMenuOpen ? "block" : "hidden lg:block"}`}
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
-        className={`fixed left-0 top-0 h-screen bg-[#0a0a0e] border-r border-[#1a1a1a] flex flex-col z-40 transition-all duration-300 ${
-          isMobileOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 ${isExpanded ? "w-60" : "w-16"}`}
       >
-        {/* Logo */}
-        <div className="p-4 border-b border-[#1a1a1a] flex items-center justify-center">
-          <motion.div
-            animate={{
-              filter: "drop-shadow(0 0 8px #6c63ff)",
-            }}
-            transition={{ duration: 0.3 }}
-          >
-            {isExpanded ? (
+        {/* Header with Logo */}
+        <div className="h-16 flex items-center justify-center border-b border-[#1f1f1f]">
+          {isExpanded || isMobileMenuOpen ? (
+            <div className="px-4 transition-opacity duration-300">
+              <div className="relative">
+                <Image
+                  src={lancelogo}
+                  alt="LanceIQ Logo"
+                  className="w-32 relative z-10"
+                  priority
+                />
+                {/* Enhanced Neon glow effect - non-blinking */}
+                <div className="absolute inset-0 blur-2xl opacity-40 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 animate-pulse-slow"></div>
+                <div className="absolute inset-0 blur-md opacity-20 bg-violet-400"></div>
+              </div>
+            </div>
+          ) : (
+            <div className="relative group">
               <Image
-                src={lancelogo}
+                src={lancesymbol}
                 alt="LanceIQ"
-                className="w-32"
-                width={128}
-                height={32}
-                priority
-              />
-            ) : (
-              <Image
-                src={lanceSymbol}
-                alt="LanceIQ Symbol"
-                className="w-8 h-8"
                 width={32}
                 height={32}
-                priority
+                className="w-8 h-8 relative z-10"
               />
-            )}
-          </motion.div>
+              {/* Enhanced Neon glow on symbol - non-blinking */}
+              <div className="absolute inset-0 blur-lg opacity-50 bg-violet-500 rounded-full animate-pulse-slow"></div>
+              <div className="absolute inset-0 blur-md opacity-30 bg-purple-400 rounded-full"></div>
+            </div>
+          )}
         </div>
 
-        {/* Search - only when expanded */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="px-4 py-3"
-            >
+        {/* Search Bar - only visible when expanded */}
+        {(isExpanded || isMobileMenuOpen) && (
+          <div className="p-3 border-b border-[#1f1f1f] transition-all duration-300">
+            <div className="relative">
               <input
                 type="text"
                 placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-3 py-2 bg-[#111111] border border-[#2a2a2a] rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#6c63ff]"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-3 py-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors"
               />
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <svg
+                className="absolute right-3 top-2.5 w-4 h-4 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        )}
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-2">
-          {/* Competitors */}
-          <div className="mb-4">
-            <button
-              onClick={() => setCompetitorsOpen(!competitorsOpen)}
-              className={`w-full flex items-center ${
-                isExpanded ? "justify-between" : "justify-center"
-              } px-3 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all`}
-              title={!isExpanded ? "Competitors" : ""}
+        {/* Navigation */}
+        <nav
+          className="flex-1 p-2 space-y-1 overflow-y-auto"
+          style={{ maxHeight: "calc(100vh - 120px)" }}
+        >
+          {/* Dashboard Overview */}
+          <Link
+            href="/dashboard"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-3 px-3 py-2.5 rounded-md transition-all duration-200 group ${
+              isActive("/dashboard")
+                ? "bg-violet-600/10 text-violet-400 border-l-2 border-violet-500"
+                : "text-gray-400 hover:bg-[#1a1a1a] hover:text-gray-200"
+            }`}
+            title={
+              !(isExpanded || isMobileMenuOpen) ? "Dashboard Overview" : ""
+            }
+          >
+            <svg
+              className="w-5 h-5 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <div className="flex items-center gap-2">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              />
+            </svg>
+            {(isExpanded || isMobileMenuOpen) && (
+              <span className="text-sm font-medium">Dashboard</span>
+            )}
+          </Link>
+
+          {/* Competitors Section with Dropdown */}
+          <div className="pt-2">
+            <button
+              onClick={() => setIsCompetitorsOpen(!isCompetitorsOpen)}
+              className={`w-full flex items-center justify-between px-3 py-2 text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a] rounded-md transition-all duration-200 ${
+                !(isExpanded || isMobileMenuOpen) && "justify-center"
+              }`}
+              title={!(isExpanded || isMobileMenuOpen) ? "Competitors" : ""}
+            >
+              <div className="flex items-center space-x-3">
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -137,67 +226,83 @@ const DashboardSidebar: React.FC<SidebarProps> = ({ competitors }) => {
                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
-                {isExpanded && <span>Competitors</span>}
+                {(isExpanded || isMobileMenuOpen) && (
+                  <span className="text-xs font-semibold uppercase tracking-wider">
+                    Competitors
+                  </span>
+                )}
               </div>
-              {isExpanded && (
+              {(isExpanded || isMobileMenuOpen) && (
                 <svg
-                  className={`w-4 h-4 transition-transform ${
-                    competitorsOpen ? "rotate-90" : ""
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    isCompetitorsOpen ? "rotate-180" : ""
                   }`}
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
                   <path
-                    fillRule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clipRule="evenodd"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
                   />
                 </svg>
               )}
             </button>
 
-            {isExpanded && competitorsOpen && (
-              <div className="mt-1 space-y-1">
-                {filteredCompetitors.map((comp) => (
+            {/* Dropdown Content */}
+            {isCompetitorsOpen && (
+              <div className="space-y-1 mt-1 overflow-hidden">
+                {filteredCompetitors.map((competitor) => (
                   <Link
-                    key={comp.id}
-                    href={`/dashboard/competitors/${comp.id}`}
-                    onClick={() => setIsMobileOpen(false)}
-                    className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all ${
-                      pathname.includes(comp.id)
-                        ? "bg-[#6c63ff]/10 text-[#6c63ff] border-l-2 border-[#6c63ff]"
-                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                    key={competitor.id}
+                    href={`/dashboard/competitors/${competitor.id}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 group ${
+                      isCompetitorActive(competitor.id)
+                        ? "bg-violet-600/10 text-violet-400 border-l-2 border-violet-500"
+                        : "text-gray-400 hover:bg-[#1a1a1a] hover:text-gray-200"
                     }`}
+                    title={
+                      !(isExpanded || isMobileMenuOpen) ? competitor.name : ""
+                    }
                   >
-                    <span
-                      className={`w-2 h-2 rounded-full ${
-                        comp.status === "active"
-                          ? "bg-green-500"
-                          : "bg-gray-500"
-                      }`}
-                    />
-                    {comp.name}
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div
+                        className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                          competitor.status === "active"
+                            ? "bg-green-500 shadow-sm shadow-green-500/50"
+                            : "bg-gray-500"
+                        }`}
+                      />
+                      {(isExpanded || isMobileMenuOpen) && (
+                        <span className="text-sm truncate">
+                          {competitor.name}
+                        </span>
+                      )}
+                    </div>
                   </Link>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Analyze Website */}
+          {/* Analyze Your Website */}
           <Link
             href="/dashboard/analyze-your-website"
-            onClick={() => setIsMobileOpen(false)}
-            className={`flex items-center ${
-              isExpanded ? "gap-2" : "justify-center"
-            } px-3 py-2 text-sm rounded-lg transition-all ${
-              pathname === "/dashboard/analyze-your-website"
-                ? "bg-[#6c63ff]/10 text-[#6c63ff] border-l-2 border-[#6c63ff]"
-                : "text-gray-400 hover:text-white hover:bg-white/5"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center space-x-3 px-3 py-2.5 rounded-md transition-all duration-200 group ${
+              isActive("/dashboard/analyze-your-website")
+                ? "bg-violet-600/10 text-violet-400 border-l-2 border-violet-500"
+                : "text-gray-400 hover:bg-[#1a1a1a] hover:text-gray-200"
             }`}
-            title={!isExpanded ? "Analyze Website" : ""}
+            title={
+              !(isExpanded || isMobileMenuOpen) ? "Analyze Your Website" : ""
+            }
           >
             <svg
-              className="w-5 h-5"
+              className="w-5 h-5 flex-shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -206,13 +311,15 @@ const DashboardSidebar: React.FC<SidebarProps> = ({ competitors }) => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
               />
             </svg>
-            {isExpanded && <span>Analyze Your Website</span>}
+            {(isExpanded || isMobileMenuOpen) && (
+              <span className="text-sm font-medium">Analyze Website</span>
+            )}
           </Link>
         </nav>
-      </motion.div>
+      </div>
     </>
   );
 };
