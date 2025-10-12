@@ -30,6 +30,105 @@ const DashboardCharts: React.FC = () => {
     fetchChartData();
   }, []);
 
+  const fetchAdTrendData = async (
+    competitorIds: string[],
+    userCompetitors: any[]
+  ) => {
+    try {
+      console.log(
+        "Fetching ad trend data for competitors:",
+        userCompetitors.map((uc) => uc.competitors.name)
+      );
+
+      // Fetch all ads for these competitors (no date filter for now)
+      const { data: ads, error } = await supabase
+        .from("competitor_ads")
+        .select("competitor_id, start_date")
+        .in("competitor_id", competitorIds);
+
+      if (error) {
+        console.error("Error fetching ads:", error);
+        return [];
+      }
+
+      console.log("Fetched ads:", ads);
+
+      // Create date range for last 30 days to capture more ad activity
+      const last30Days = Array.from({ length: 30 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (29 - i));
+        return date;
+      });
+
+      console.log(
+        "Last 30 days:",
+        last30Days.map((d) => d.toLocaleDateString())
+      );
+
+      // Group ads by competitor and date
+      const competitorData: { [key: string]: { [key: string]: number } } = {};
+
+      userCompetitors.forEach((uc) => {
+        competitorData[uc.competitors.name] = {};
+        last30Days.forEach((date) => {
+          const dateStr = date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+          competitorData[uc.competitors.name][dateStr] = 0;
+        });
+      });
+
+      // Count ads per competitor per day
+      ads?.forEach((ad) => {
+        const adDate = new Date(ad.start_date);
+        const dateStr = adDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+
+        console.log(`Ad date: ${ad.start_date} -> formatted: ${dateStr}`);
+
+        // Find competitor name
+        const competitor = userCompetitors.find(
+          (uc) => uc.competitor_id === ad.competitor_id
+        );
+
+        if (competitor && competitorData[competitor.competitors.name]) {
+          const currentCount =
+            competitorData[competitor.competitors.name][dateStr] || 0;
+          competitorData[competitor.competitors.name][dateStr] =
+            currentCount + 1;
+          console.log(
+            `Added 1 ad for ${competitor.competitors.name} on ${dateStr}`
+          );
+        }
+      });
+
+      // Convert to chart format
+      const chartData = last30Days.map((date) => {
+        const dateStr = date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+        const dataPoint: any = { date: dateStr };
+
+        userCompetitors.forEach((uc) => {
+          dataPoint[uc.competitors.name] =
+            competitorData[uc.competitors.name][dateStr] || 0;
+        });
+
+        return dataPoint;
+      });
+
+      console.log("Final chart data:", chartData);
+      return chartData;
+    } catch (error) {
+      console.error("Error in fetchAdTrendData:", error);
+      return [];
+    }
+  };
+
   const fetchChartData = async () => {
     try {
       // Get user's competitors
@@ -43,7 +142,7 @@ const DashboardCharts: React.FC = () => {
 
       const competitorIds = userCompetitors.map((uc) => uc.competitor_id);
 
-      // Fetch competitor activity data
+      // Fetch competitor activity data (PAID ADS ONLY)
       const competitorActivityData = await Promise.all(
         userCompetitors.map(async (uc: any) => {
           const { count: adCount } = await supabase
@@ -51,62 +150,48 @@ const DashboardCharts: React.FC = () => {
             .select("*", { count: "exact", head: true })
             .eq("competitor_id", uc.competitor_id);
 
-          const { count: creativeCount } = await supabase
-            .from("competitor_creatives")
-            .select("*", { count: "exact", head: true })
-            .eq("competitor_id", uc.competitor_id);
-
           return {
             name: uc.competitors.name,
-            value: (adCount || 0) + (creativeCount || 0),
+            value: adCount || 0,
             color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
           };
         })
       );
 
-      // Fetch platform distribution
+      // Fetch Video vs Image distribution (PAID ADS ONLY)
       const { data: ads } = await supabase
         .from("competitor_ads")
-        .select("platform")
+        .select("image_url, video_url")
         .in("competitor_id", competitorIds);
 
-      const { data: creatives } = await supabase
-        .from("competitor_creatives")
-        .select("platform")
-        .in("competitor_id", competitorIds);
+      // Count video vs image ads
+      let videoCount = 0;
+      let imageCount = 0;
 
-      const platformCounts: { [key: string]: number } = {};
-
-      [...(ads || []), ...(creatives || [])].forEach((item) => {
-        const platform = item.platform || "Unknown";
-        platformCounts[platform] = (platformCounts[platform] || 0) + 1;
+      ads?.forEach((ad) => {
+        if (ad.video_url) {
+          videoCount++;
+        } else if (ad.image_url) {
+          imageCount++;
+        }
       });
 
-      const platformData = Object.entries(platformCounts).map(
-        ([name, value]) => ({
-          name,
-          value,
-          color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-        })
-      );
+      const totalAds = videoCount + imageCount;
+      const videoPercentage =
+        totalAds > 0 ? Math.round((videoCount / totalAds) * 100) : 0;
+      const imagePercentage =
+        totalAds > 0 ? Math.round((imageCount / totalAds) * 100) : 0;
 
-      // Generate sample trend data (last 7 days)
-      const trendData = Array.from({ length: 7 }, (_, i) => {
-        const date = new Date();
-        date.setDate(date.getDate() - (6 - i));
-        return {
-          date: date.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          }),
-          ads: Math.floor(Math.random() * 20) + 5,
-          creatives: Math.floor(Math.random() * 15) + 3,
-          engagement: Math.floor(Math.random() * 1000) + 100,
-        };
-      });
+      const videoImageData = [
+        { name: "Video", value: videoPercentage },
+        { name: "Image", value: imagePercentage },
+      ];
+
+      // Fetch real ad trend data for each competitor
+      const trendData = await fetchAdTrendData(competitorIds, userCompetitors);
 
       setCompetitorActivity(competitorActivityData);
-      setPlatformDistribution(platformData);
+      setPlatformDistribution(videoImageData);
       setAdTrends(trendData);
     } catch (error) {
       console.error("Error fetching chart data:", error);
@@ -164,12 +249,7 @@ const DashboardCharts: React.FC = () => {
           Video vs Image
         </h3>
         <ResponsiveContainer width="100%" height={250}>
-          <BarChart
-            data={[
-              { name: "Video", value: 65 },
-              { name: "Image", value: 35 },
-            ]}
-          >
+          <BarChart data={platformDistribution}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis
               dataKey="name"
@@ -214,23 +294,59 @@ const DashboardCharts: React.FC = () => {
                 borderRadius: "8px",
                 color: "#F9FAFB",
               }}
+              formatter={(value, name) => [`${value} ads`, name]}
             />
-            <Line
-              type="monotone"
-              dataKey="ads"
-              stroke="#8B5CF6"
-              strokeWidth={2}
-              dot={{ fill: "#8B5CF6", strokeWidth: 2, r: 4 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="creatives"
-              stroke="#3B82F6"
-              strokeWidth={2}
-              dot={{ fill: "#3B82F6", strokeWidth: 2, r: 4 }}
-            />
+            {/* Dynamic lines for each competitor */}
+            {competitorActivity.map((competitor, index) => {
+              const colors = [
+                "#8B5CF6",
+                "#3B82F6",
+                "#06B6D4",
+                "#F59E0B",
+                "#EF4444",
+              ];
+              const color = colors[index % colors.length];
+
+              return (
+                <Line
+                  key={competitor.name}
+                  type="monotone"
+                  dataKey={competitor.name}
+                  stroke={color}
+                  strokeWidth={2}
+                  dot={{ fill: color, strokeWidth: 2, r: 4 }}
+                  connectNulls={false}
+                />
+              );
+            })}
           </LineChart>
         </ResponsiveContainer>
+        {/* Legend */}
+        <div className="flex flex-wrap gap-3 mt-3 justify-center">
+          {competitorActivity.map((competitor, index) => {
+            const colors = [
+              "#8B5CF6",
+              "#3B82F6",
+              "#06B6D4",
+              "#F59E0B",
+              "#EF4444",
+            ];
+            const color = colors[index % colors.length];
+
+            return (
+              <div
+                key={competitor.name}
+                className="flex items-center space-x-2"
+              >
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: color }}
+                ></div>
+                <span className="text-sm text-gray-400">{competitor.name}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

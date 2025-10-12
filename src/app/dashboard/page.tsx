@@ -236,102 +236,273 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Top Performing Competitor */}
-          <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-xl p-6 mb-8 border border-[#2a2a2a] hover:border-violet-500/30 transition-all duration-300">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg shadow-green-500/20">
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-white">
-                    Top Performing Competitor
-                  </h2>
-                  <p className="text-gray-400 text-sm">This month's leader</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-green-400 text-sm font-medium">Live</span>
-              </div>
-            </div>
-
-            <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1f1f1f]">
-              <div className="flex items-center justify-between mb-4">
+          {/* Top Performers - Two Sections */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Top Performer for Paid Ads */}
+            <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-xl p-6 border border-[#2a2a2a] hover:border-blue-500/30 transition-all duration-300">
+              <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">1</span>
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
+                    </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">
-                      Brishni
-                    </h3>
+                    <h2 className="text-xl font-semibold text-white">
+                      Top Paid Ads Performer
+                    </h2>
                     <p className="text-gray-400 text-sm">
-                      Gold Jewelry Retailer
+                      Most active advertiser
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-green-400">
-                    +23.5%
-                  </div>
-                  <div className="text-gray-400 text-sm">vs last month</div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-[#1a1a1a] rounded-lg p-4 border border-[#2a2a2a]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-sm">Active Ads</span>
-                    <span className="text-green-400 text-xs">+12</span>
-                  </div>
-                  <div className="text-2xl font-bold text-white">47</div>
-                  <div className="text-gray-500 text-xs">this month</div>
-                </div>
-
-                <div className="bg-[#1a1a1a] rounded-lg p-4 border border-[#2a2a2a]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-sm">Engagement</span>
-                    <span className="text-blue-400 text-xs">+8.2%</span>
-                  </div>
-                  <div className="text-2xl font-bold text-white">2.4K</div>
-                  <div className="text-gray-500 text-xs">total likes</div>
-                </div>
-
-                <div className="bg-[#1a1a1a] rounded-lg p-4 border border-[#2a2a2a]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-sm">Video Content</span>
-                    <span className="text-purple-400 text-xs">+15%</span>
-                  </div>
-                  <div className="text-2xl font-bold text-white">68%</div>
-                  <div className="text-gray-500 text-xs">of total ads</div>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-[#1f1f1f]">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-sm">Key Insight</span>
-                  <span className="text-violet-400 text-xs font-medium">
-                    AI Analysis
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-blue-400 text-sm font-medium">
+                    Live
                   </span>
                 </div>
-                <p className="text-gray-300 text-sm mt-2">
-                  Leading with high-quality video content and strong Instagram
-                  presence. Focus on product showcase videos driving 40% more
-                  engagement.
-                </p>
+              </div>
+
+              <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1f1f1f]">
+                {(() => {
+                  const topPaidAdsCompetitor = competitors.reduce(
+                    (max, competitor) =>
+                      competitor.ad_count > max.ad_count ? competitor : max,
+                    competitors[0] || {
+                      name: "No data",
+                      ad_count: 0,
+                      industry: "",
+                    }
+                  );
+
+                  return (
+                    <>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-lg flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">
+                              1
+                            </span>
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-white">
+                              {topPaidAdsCompetitor.name || "No Competitors"}
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                              {topPaidAdsCompetitor.industry ||
+                                "Industry not specified"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-blue-400">
+                            {topPaidAdsCompetitor.ad_count || 0}
+                          </div>
+                          <div className="text-gray-400 text-sm">total ads</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-[#1a1a1a] rounded-lg p-4 border border-[#2a2a2a]">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-gray-400 text-sm">
+                              Active Ads
+                            </span>
+                          </div>
+                          <div className="text-2xl font-bold text-white">
+                            {topPaidAdsCompetitor.ad_count || 0}
+                          </div>
+                          <div className="text-gray-500 text-xs">
+                            currently running
+                          </div>
+                        </div>
+
+                        <div className="bg-[#1a1a1a] rounded-lg p-4 border border-[#2a2a2a]">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-gray-400 text-sm">
+                              Market Share
+                            </span>
+                          </div>
+                          <div className="text-2xl font-bold text-white">
+                            {totalAds > 0
+                              ? Math.round(
+                                  (topPaidAdsCompetitor.ad_count / totalAds) *
+                                    100
+                                )
+                              : 0}
+                            %
+                          </div>
+                          <div className="text-gray-500 text-xs">
+                            of total ads
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t border-[#1f1f1f]">
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400 text-sm">
+                            Key Insight
+                          </span>
+                          <span className="text-blue-400 text-xs font-medium">
+                            AI Analysis
+                          </span>
+                        </div>
+                        <p className="text-gray-300 text-sm mt-2">
+                          {topPaidAdsCompetitor.ad_count > 0
+                            ? `${topPaidAdsCompetitor.name} leads in paid advertising with ${topPaidAdsCompetitor.ad_count} active campaigns. Strong digital presence with strategic ad placements driving market visibility.`
+                            : "No paid ads data available yet. Upload competitor ads to see performance insights."}
+                        </p>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Top Performer for Organic Social Media */}
+            <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-xl p-6 border border-[#2a2a2a] hover:border-green-500/30 transition-all duration-300">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg shadow-green-500/20">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">
+                      Top Organic Performer
+                    </h2>
+                    <p className="text-gray-400 text-sm">Highest engagement</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-green-400 text-sm font-medium">
+                    Live
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1f1f1f]">
+                {(() => {
+                  const topOrganicCompetitor = competitors.reduce(
+                    (max, competitor) =>
+                      competitor.total_engagement > max.total_engagement
+                        ? competitor
+                        : max,
+                    competitors[0] || {
+                      name: "No data",
+                      total_engagement: 0,
+                      industry: "",
+                    }
+                  );
+
+                  return (
+                    <>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-emerald-600 rounded-lg flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">
+                              1
+                            </span>
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-white">
+                              {topOrganicCompetitor.name || "No Competitors"}
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                              {topOrganicCompetitor.industry ||
+                                "Industry not specified"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-green-400">
+                            {topOrganicCompetitor.total_engagement.toLocaleString() ||
+                              0}
+                          </div>
+                          <div className="text-gray-400 text-sm">
+                            total likes
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-[#1a1a1a] rounded-lg p-4 border border-[#2a2a2a]">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-gray-400 text-sm">
+                              Social Posts
+                            </span>
+                          </div>
+                          <div className="text-2xl font-bold text-white">
+                            {topOrganicCompetitor.creative_count || 0}
+                          </div>
+                          <div className="text-gray-500 text-xs">
+                            total posts
+                          </div>
+                        </div>
+
+                        <div className="bg-[#1a1a1a] rounded-lg p-4 border border-[#2a2a2a]">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-gray-400 text-sm">
+                              Avg Engagement
+                            </span>
+                          </div>
+                          <div className="text-2xl font-bold text-white">
+                            {topOrganicCompetitor.creative_count > 0
+                              ? Math.round(
+                                  topOrganicCompetitor.total_engagement /
+                                    topOrganicCompetitor.creative_count
+                                )
+                              : 0}
+                          </div>
+                          <div className="text-gray-500 text-xs">
+                            likes per post
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t border-[#1f1f1f]">
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400 text-sm">
+                            Key Insight
+                          </span>
+                          <span className="text-green-400 text-xs font-medium">
+                            AI Analysis
+                          </span>
+                        </div>
+                        <p className="text-gray-300 text-sm mt-2">
+                          {topOrganicCompetitor.total_engagement > 0
+                            ? `${
+                                topOrganicCompetitor.name
+                              } leads in organic engagement with ${topOrganicCompetitor.total_engagement.toLocaleString()} total likes. Strong community building and authentic content strategy.`
+                            : "No organic social media data available yet. Upload competitor posts to see engagement insights."}
+                        </p>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </div>
