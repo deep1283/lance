@@ -232,16 +232,30 @@ const CompetitorDetailPage: React.FC = () => {
 
                     <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1f1f1f]">
                       <p className="text-gray-300 text-sm leading-relaxed">
-                        <strong className="text-violet-400">
-                          Shreehari's Paid Ads Strategy:
-                        </strong>{" "}
-                        The competitor is leveraging seasonal marketing with
-                        strong emotional appeal through festive themes. Their
-                        jewelry-focused campaigns target high-value customers
-                        (₹3000+ purchases) with compelling gift offers. The
-                        visual strategy emphasizes traditional Indian aesthetics
-                        combined with modern presentation, creating aspirational
-                        content that drives conversions.
+                        {ads.length > 0 ? (
+                          <>
+                            <strong className="text-violet-400">
+                              {competitor?.name}'s Paid Ads Strategy:
+                            </strong>{" "}
+                            The competitor is leveraging seasonal marketing with
+                            strong emotional appeal through festive themes.
+                            Their jewelry-focused campaigns target high-value
+                            customers (₹3000+ purchases) with compelling gift
+                            offers. The visual strategy emphasizes traditional
+                            Indian aesthetics combined with modern presentation,
+                            creating aspirational content that drives
+                            conversions.
+                          </>
+                        ) : (
+                          <>
+                            <strong className="text-red-400">
+                              No Paid Ads Analysis Available:
+                            </strong>{" "}
+                            {competitor?.name} is not currently running any paid
+                            ads. No advertising strategy data is available for
+                            analysis.
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -291,6 +305,52 @@ const CompetitorDetailPage: React.FC = () => {
                                 </div>
                               </div>
                             )}
+                            {ad.carousel_images &&
+                              ad.carousel_images.split(",").length > 0 && (
+                                <div className="mb-3">
+                                  <div className="flex overflow-x-auto gap-2 pb-2">
+                                    {ad.carousel_images
+                                      .split(",")
+                                      .map((imageUrl, index) => (
+                                        <div
+                                          key={index}
+                                          className="relative group cursor-pointer flex-shrink-0"
+                                        >
+                                          <img
+                                            src={imageUrl}
+                                            alt={`${
+                                              ad.ad_title || "Carousel"
+                                            } - Image ${index + 1}`}
+                                            className="w-32 h-32 object-cover rounded-lg"
+                                            onClick={() =>
+                                              setSelectedMedia({
+                                                type: "image",
+                                                url: imageUrl,
+                                              })
+                                            }
+                                          />
+                                          <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                              <svg
+                                                className="w-6 h-6 text-white"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={2}
+                                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                                                />
+                                              </svg>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                  </div>
+                                </div>
+                              )}
                             {ad.video_url && (
                               <div className="relative group cursor-pointer">
                                 <video
