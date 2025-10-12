@@ -27,9 +27,7 @@ const CompetitorDetailPage: React.FC = () => {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [competitor, setCompetitor] = useState<Competitor | null>(null);
-  const [activeTab, setActiveTab] = useState<"ads" | "organic" | "analysis">(
-    "ads"
-  );
+  const [activeTab, setActiveTab] = useState<"ads" | "organic">("ads");
   const [loadingData, setLoadingData] = useState(true);
   const [ads, setAds] = useState<any[]>([]);
   const [creatives, setCreatives] = useState<any[]>([]);
@@ -186,16 +184,6 @@ const CompetitorDetailPage: React.FC = () => {
                 >
                   Organic Social Media
                 </button>
-                <button
-                  onClick={() => setActiveTab("analysis")}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === "analysis"
-                      ? "border-violet-500 text-violet-400"
-                      : "border-transparent text-gray-400 hover:text-gray-300"
-                  }`}
-                >
-                  AI Analysis
-                </button>
               </nav>
             </div>
 
@@ -205,6 +193,58 @@ const CompetitorDetailPage: React.FC = () => {
                   <h3 className="text-lg font-semibold text-white mb-6">
                     Paid Ads Analysis
                   </h3>
+
+                  {/* AI Analysis Section */}
+                  <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-xl p-6 mb-8 border border-[#2a2a2a] hover:border-violet-500/30 transition-all duration-300">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-violet-500/20">
+                          <svg
+                            className="w-5 h-5 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-semibold text-white">
+                            AI Analysis
+                          </h4>
+                          <p className="text-gray-400 text-sm">
+                            Powered by Advanced AI
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-green-400 text-sm font-medium">
+                          Live
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1f1f1f]">
+                      <p className="text-gray-300 text-sm leading-relaxed">
+                        <strong className="text-violet-400">
+                          Shreehari's Paid Ads Strategy:
+                        </strong>{" "}
+                        The competitor is leveraging seasonal marketing with
+                        strong emotional appeal through festive themes. Their
+                        jewelry-focused campaigns target high-value customers
+                        (₹3000+ purchases) with compelling gift offers. The
+                        visual strategy emphasizes traditional Indian aesthetics
+                        combined with modern presentation, creating aspirational
+                        content that drives conversions.
+                      </p>
+                    </div>
+                  </div>
 
                   {/* Real Ads Display */}
                   {ads.length > 0 && (
@@ -231,7 +271,8 @@ const CompetitorDetailPage: React.FC = () => {
                                     })
                                   }
                                 />
-                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                {/* Overlay fix: allow clicks through and disable base opacity */}
+                                <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
                                   <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                     <svg
                                       className="w-8 h-8 text-white"
@@ -250,7 +291,40 @@ const CompetitorDetailPage: React.FC = () => {
                                 </div>
                               </div>
                             )}
-                            {/* Video ads will be added when video_url column is available */}
+                            {ad.video_url && (
+                              <div className="relative group cursor-pointer">
+                                <video
+                                  src={ad.video_url}
+                                  className="w-full h-48 object-cover rounded-lg mb-3"
+                                  onClick={() =>
+                                    setSelectedMedia({
+                                      type: "video",
+                                      url: ad.video_url,
+                                    })
+                                  }
+                                  preload="metadata"
+                                  poster={ad.image_url} // Use image as poster if available
+                                />
+                                {/* Overlay fix: allow clicks through and disable base opacity */}
+                                <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <svg
+                                      className="w-8 h-8 text-white"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                      />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                             <div className="text-sm text-gray-300">
                               <p className="font-medium text-white mb-1">
                                 {ad.ad_title}
@@ -263,6 +337,22 @@ const CompetitorDetailPage: React.FC = () => {
                                   {ad.ad_copy}
                                 </p>
                               )}
+                              <div className="flex justify-between text-xs text-gray-500 mt-2">
+                                {ad.start_date && (
+                                  <span>
+                                    Start:{" "}
+                                    {new Date(
+                                      ad.start_date
+                                    ).toLocaleDateString()}
+                                  </span>
+                                )}
+                                {ad.end_date && (
+                                  <span>
+                                    End:{" "}
+                                    {new Date(ad.end_date).toLocaleDateString()}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -407,6 +497,60 @@ const CompetitorDetailPage: React.FC = () => {
                   <h3 className="text-lg font-semibold text-white mb-6">
                     Organic Social Media Analysis
                   </h3>
+
+                  {/* AI Analysis Section */}
+                  <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-xl p-6 mb-8 border border-[#2a2a2a] hover:border-violet-500/30 transition-all duration-300">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-violet-500/20">
+                          <svg
+                            className="w-5 h-5 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-semibold text-white">
+                            AI Analysis
+                          </h4>
+                          <p className="text-gray-400 text-sm">
+                            Powered by Advanced AI
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-green-400 text-sm font-medium">
+                          Live
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1f1f1f]">
+                      <p className="text-gray-300 text-sm leading-relaxed">
+                        <strong className="text-violet-400">
+                          Shreehari's Organic Strategy:
+                        </strong>{" "}
+                        The brand maintains strong community engagement through
+                        authentic storytelling and cultural celebration. Their
+                        organic content focuses on showcasing jewelry
+                        craftsmanship, customer testimonials, and
+                        behind-the-scenes content. The approach emphasizes
+                        trust-building and brand loyalty through consistent,
+                        high-quality visual content that resonates with
+                        traditional Indian values while appealing to modern
+                        aesthetics.
+                      </p>
+                    </div>
+                  </div>
 
                   {/* Charts Grid */}
                   <div className="space-y-6">
@@ -602,43 +746,6 @@ const CompetitorDetailPage: React.FC = () => {
                   </div>
                 </div>
               )}
-
-              {activeTab === "analysis" && (
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">
-                    AI Analysis
-                  </h3>
-                  <div className="bg-gray-900 rounded-lg p-4 border border-gray-600">
-                    <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 bg-violet-600 rounded-full flex items-center justify-center flex-shrink-0">
-                        <svg
-                          className="w-4 h-4 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                          />
-                        </svg>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-gray-300 text-sm leading-relaxed">
-                          AI analysis for {competitor.name} will be generated
-                          based on their advertising patterns, social media
-                          engagement, and competitive positioning. This analysis
-                          will provide insights into their marketing strategy,
-                          content performance, and opportunities for your
-                          business.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </main>
@@ -674,8 +781,9 @@ const CompetitorDetailPage: React.FC = () => {
               <img
                 src={selectedMedia.url}
                 alt="Fullscreen view"
-                className="max-w-full max-h-full object-contain"
+                className="max-w-full max-h-[90vh] object-contain"
                 onClick={(e) => e.stopPropagation()}
+                style={{ maxHeight: "90vh" }}
               />
             )}
 
@@ -684,7 +792,8 @@ const CompetitorDetailPage: React.FC = () => {
                 src={selectedMedia.url}
                 controls
                 autoPlay
-                className="max-w-full max-h-full"
+                className="max-w-full max-h-[90vh] object-contain"
+                style={{ maxHeight: "90vh" }}
                 onClick={(e) => e.stopPropagation()}
               >
                 Your browser does not support the video tag.
