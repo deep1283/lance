@@ -62,12 +62,17 @@ const DashboardPage: React.FC = () => {
 
           const { data: creatives } = await supabase
             .from("competitor_creatives")
-            .select("engagement_count")
+            .select("likes_count, views_count, post_type")
             .eq("competitor_id", competitor.id);
 
           const totalEngagement =
-            creatives?.reduce((sum, c) => sum + (c.engagement_count || 0), 0) ||
-            0;
+            creatives?.reduce((sum, c) => {
+              if (c.post_type === "reel") {
+                return sum + (c.likes_count || 0) + (c.views_count || 0);
+              } else {
+                return sum + (c.likes_count || 0);
+              }
+            }, 0) || 0;
 
           return {
             ...competitor,

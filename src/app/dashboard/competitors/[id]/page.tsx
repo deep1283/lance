@@ -31,10 +31,14 @@ const CompetitorDetailPage: React.FC = () => {
   const [loadingData, setLoadingData] = useState(true);
   const [ads, setAds] = useState<any[]>([]);
   const [creatives, setCreatives] = useState<any[]>([]);
+  const [topPosts, setTopPosts] = useState<any[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<{
     type: "image" | "video";
     url: string;
   } | null>(null);
+
+  const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
+  const [selectedAd, setSelectedAd] = useState<any | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -92,8 +96,35 @@ const CompetitorDetailPage: React.FC = () => {
         }
       }
 
-      // Skip creatives fetch for now since we're using competitor_ads
-      setCreatives([]);
+      // Fetch competitor creatives (organic social media)
+      const { data: creativesData, error: creativesError } = await supabase
+        .from("competitor_creatives")
+        .select("*")
+        .eq("competitor_id", params.id)
+        .order("posted_at", { ascending: false });
+
+      if (creativesError) {
+        console.error("Error fetching creatives:", creativesError);
+        setCreatives([]);
+      } else {
+        setCreatives(creativesData || []);
+        console.log("Fetched creatives:", creativesData);
+      }
+
+      // Fetch competitor top posts (viral reels)
+      const { data: topPostsData, error: topPostsError } = await supabase
+        .from("competitor_top_posts")
+        .select("*")
+        .eq("competitor_id", params.id)
+        .order("likes_count", { ascending: false });
+
+      if (topPostsError) {
+        console.error("Error fetching top posts:", topPostsError);
+        setTopPosts([]);
+      } else {
+        setTopPosts(topPostsData || []);
+        console.log("Fetched top posts:", topPostsData);
+      }
     } catch (error) {
       console.error("Error fetching competitor:", error);
       router.push("/dashboard");
@@ -385,7 +416,10 @@ const CompetitorDetailPage: React.FC = () => {
                                 </div>
                               </div>
                             )}
-                            <div className="text-sm text-gray-300">
+                            <div
+                              className="text-sm text-gray-300 cursor-pointer hover:bg-gray-800 rounded-lg p-2 transition-colors"
+                              onClick={() => setSelectedAd(ad)}
+                            >
                               <p className="font-medium text-white mb-1">
                                 {ad.ad_title}
                               </p>
@@ -393,7 +427,7 @@ const CompetitorDetailPage: React.FC = () => {
                                 {ad.platform}
                               </p>
                               {ad.ad_copy && (
-                                <p className="text-gray-400 mt-1">
+                                <p className="text-gray-400 mt-1 line-clamp-2">
                                   {ad.ad_copy}
                                 </p>
                               )}
@@ -406,12 +440,14 @@ const CompetitorDetailPage: React.FC = () => {
                                     ).toLocaleDateString()}
                                   </span>
                                 )}
-                                {ad.end_date && (
-                                  <span>
-                                    End:{" "}
-                                    {new Date(ad.end_date).toLocaleDateString()}
-                                  </span>
-                                )}
+                                <span className="text-green-400 font-medium">
+                                  {ad.status === "active"
+                                    ? "Active"
+                                    : ad.status}
+                                </span>
+                              </div>
+                              <div className="text-xs text-blue-400 mt-2 opacity-0 hover:opacity-100 transition-opacity">
+                                Click for full details
                               </div>
                             </div>
                           </div>
@@ -612,6 +648,198 @@ const CompetitorDetailPage: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Last 7 Days Posts */}
+                  {creatives.length > 0 && (
+                    <div className="mb-8">
+                      <h4 className="text-md font-semibold text-white mb-4">
+                        Last 7 Days Posts ({creatives.length})
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {creatives.map((creative, index) => (
+                          <div
+                            key={index}
+                            className="bg-gray-900 rounded-lg p-4 border border-gray-700"
+                          >
+                            {creative.image_url && (
+                              <div className="relative group cursor-pointer">
+                                <img
+                                  src={creative.image_url}
+                                  alt={creative.caption || "Organic Post"}
+                                  className="w-full h-48 object-cover rounded-lg mb-3"
+                                  onClick={() =>
+                                    setSelectedMedia({
+                                      type: "image",
+                                      url: creative.image_url,
+                                    })
+                                  }
+                                />
+                                <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <svg
+                                      className="w-8 h-8 text-white"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                                      />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {creative.video_url && (
+                              <div className="relative group cursor-pointer">
+                                <video
+                                  src={creative.video_url}
+                                  className="w-full h-48 object-cover rounded-lg mb-3"
+                                  onClick={() =>
+                                    setSelectedMedia({
+                                      type: "video",
+                                      url: creative.video_url,
+                                    })
+                                  }
+                                  preload="metadata"
+                                  poster={creative.image_url}
+                                />
+                                <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <svg
+                                      className="w-8 h-8 text-white"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                      />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            <div
+                              className="text-sm text-gray-300 cursor-pointer hover:bg-gray-800 rounded-lg p-2 transition-colors"
+                              onClick={() => setSelectedCreative(creative)}
+                            >
+                              <p className="font-medium text-white mb-1 capitalize">
+                                {creative.platform} {creative.post_type}
+                              </p>
+                              {creative.caption && (
+                                <p className="text-gray-400 mb-2 line-clamp-2">
+                                  {creative.caption}
+                                </p>
+                              )}
+                              <div className="flex justify-between text-xs text-gray-500">
+                                <span>{creative.likes_count || 0} likes</span>
+                                {creative.post_type === "reel" && (
+                                  <span>{creative.views_count || 0} views</span>
+                                )}
+                                <span>
+                                  {creative.comments_count || 0} comments
+                                </span>
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {creative.posted_at &&
+                                  new Date(
+                                    creative.posted_at
+                                  ).toLocaleDateString()}
+                              </div>
+                              <div className="text-xs text-blue-400 mt-2 opacity-0 hover:opacity-100 transition-opacity">
+                                Click for full details
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Most Viral Posts */}
+                  {topPosts.length > 0 && (
+                    <div className="mb-8">
+                      <h4 className="text-md font-semibold text-white mb-4">
+                        Most Viral Posts ({topPosts.length})
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {topPosts.map((post, index) => (
+                          <div
+                            key={index}
+                            className="bg-gray-900 rounded-lg p-4 border border-gray-700"
+                          >
+                            {post.video_url && (
+                              <div className="relative group cursor-pointer">
+                                <video
+                                  src={post.video_url}
+                                  className="w-full h-48 object-cover rounded-lg mb-3"
+                                  onClick={() =>
+                                    setSelectedMedia({
+                                      type: "video",
+                                      url: post.video_url,
+                                    })
+                                  }
+                                  preload="metadata"
+                                />
+                                <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <svg
+                                      className="w-8 h-8 text-white"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                      />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            <div
+                              className="text-sm text-gray-300 cursor-pointer hover:bg-gray-800 rounded-lg p-2 transition-colors"
+                              onClick={() => setSelectedCreative(post)}
+                            >
+                              <p className="font-medium text-white mb-1 capitalize">
+                                {post.platform} {post.post_type}
+                              </p>
+                              {post.caption && (
+                                <p className="text-gray-400 mb-2 line-clamp-2">
+                                  {post.caption}
+                                </p>
+                              )}
+                              <div className="flex justify-between text-xs text-gray-500">
+                                <span>{post.likes_count || 0} likes</span>
+                                {post.post_type === "reel" && (
+                                  <span>{post.views_count || 0} views</span>
+                                )}
+                                <span>{post.comments_count || 0} comments</span>
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {post.posted_at &&
+                                  new Date(post.posted_at).toLocaleDateString()}
+                              </div>
+                              <div className="text-xs text-blue-400 mt-2 opacity-0 hover:opacity-100 transition-opacity">
+                                Click for full details
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Charts Grid */}
                   <div className="space-y-6">
                     {/* Top Row - Image vs Video and Engagement Frequency */}
@@ -623,10 +851,38 @@ const CompetitorDetailPage: React.FC = () => {
                         </h4>
                         <ResponsiveContainer width="100%" height={250}>
                           <BarChart
-                            data={[
-                              { name: "Image", value: 60, color: "#8B5CF6" },
-                              { name: "Video", value: 40, color: "#06B6D4" },
-                            ]}
+                            data={(() => {
+                              // Use all creatives from competitor_creatives table for charts
+                              const totalCreatives = creatives.length;
+                              const imagePosts = creatives.filter(
+                                (c) => c.post_type === "image"
+                              ).length;
+                              const videoPosts = creatives.filter(
+                                (c) => c.post_type === "reel"
+                              ).length;
+
+                              if (totalCreatives === 0) {
+                                return [
+                                  { name: "Image", value: 0 },
+                                  { name: "Video", value: 0 },
+                                ];
+                              }
+
+                              return [
+                                {
+                                  name: "Image",
+                                  value: Math.round(
+                                    (imagePosts / totalCreatives) * 100
+                                  ),
+                                },
+                                {
+                                  name: "Video",
+                                  value: Math.round(
+                                    (videoPosts / totalCreatives) * 100
+                                  ),
+                                },
+                              ];
+                            })()}
                           >
                             <CartesianGrid
                               strokeDasharray="3 3"
@@ -668,14 +924,64 @@ const CompetitorDetailPage: React.FC = () => {
                         </h4>
                         <ResponsiveContainer width="100%" height={250}>
                           <LineChart
-                            data={[
-                              { week: "Week 1", likes: 1200, change: "+5%" },
-                              { week: "Week 2", likes: 1350, change: "+12%" },
-                              { week: "Week 3", likes: 1180, change: "-13%" },
-                              { week: "Week 4", likes: 1420, change: "+20%" },
-                              { week: "Week 5", likes: 1580, change: "+11%" },
-                              { week: "Week 6", likes: 1650, change: "+4%" },
-                            ]}
+                            data={(() => {
+                              // Group creatives by posted_at date (last 7 days)
+                              const last7Days = Array.from(
+                                { length: 7 },
+                                (_, i) => {
+                                  const date = new Date();
+                                  date.setDate(date.getDate() - (6 - i));
+                                  return date;
+                                }
+                              );
+
+                              return last7Days.map((date) => {
+                                const dateStr = date.toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                  }
+                                );
+
+                                // Find creatives posted on this date
+                                const dayCreatives = creatives.filter(
+                                  (creative) => {
+                                    const creativeDate = new Date(
+                                      creative.posted_at
+                                    );
+                                    return (
+                                      creativeDate.toDateString() ===
+                                      date.toDateString()
+                                    );
+                                  }
+                                );
+
+                                // Calculate total engagement for this day
+                                const totalEngagement = dayCreatives.reduce(
+                                  (sum, creative) => {
+                                    if (creative.post_type === "reel") {
+                                      return (
+                                        sum +
+                                        (creative.likes_count || 0) +
+                                        (creative.views_count || 0)
+                                      );
+                                    } else if (creative.post_type === "image") {
+                                      return sum + (creative.likes_count || 0);
+                                    } else {
+                                      return sum + (creative.likes_count || 0);
+                                    }
+                                  },
+                                  0
+                                );
+
+                                return {
+                                  week: dateStr,
+                                  likes: totalEngagement,
+                                  change: "+0%", // Simplified for now
+                                };
+                              });
+                            })()}
                           >
                             <CartesianGrid
                               strokeDasharray="3 3"
@@ -723,20 +1029,60 @@ const CompetitorDetailPage: React.FC = () => {
                       </h4>
                       <ResponsiveContainer width="100%" height={300}>
                         <BarChart
-                          data={[
-                            {
-                              type: "Image",
-                              engagement: 850,
-                              posts: 25,
-                              avgEngagement: 34,
-                            },
-                            {
-                              type: "Video",
-                              engagement: 1200,
-                              posts: 15,
-                              avgEngagement: 80,
-                            },
-                          ]}
+                          data={(() => {
+                            // Use all creatives from competitor_creatives table for charts
+
+                            const imagePosts = creatives.filter(
+                              (c) => c.post_type === "image"
+                            );
+                            const videoPosts = creatives.filter(
+                              (c) => c.post_type === "reel"
+                            );
+
+                            const imageEngagement = imagePosts.reduce(
+                              (sum, creative) =>
+                                sum + (creative.likes_count || 0),
+                              0
+                            );
+                            const videoEngagement = videoPosts.reduce(
+                              (sum, creative) => {
+                                return (
+                                  sum +
+                                  (creative.likes_count || 0) +
+                                  (creative.views_count || 0)
+                                );
+                              },
+                              0
+                            );
+
+                            const avgImageEngagement =
+                              imagePosts.length > 0
+                                ? Math.round(
+                                    imageEngagement / imagePosts.length
+                                  )
+                                : 0;
+                            const avgVideoEngagement =
+                              videoPosts.length > 0
+                                ? Math.round(
+                                    videoEngagement / videoPosts.length
+                                  )
+                                : 0;
+
+                            return [
+                              {
+                                type: "Image",
+                                engagement: imageEngagement,
+                                posts: imagePosts.length,
+                                avgEngagement: avgImageEngagement,
+                              },
+                              {
+                                type: "Video",
+                                engagement: videoEngagement,
+                                posts: videoPosts.length,
+                                avgEngagement: avgVideoEngagement,
+                              },
+                            ];
+                          })()}
                         >
                           <CartesianGrid
                             strokeDasharray="3 3"
@@ -859,6 +1205,268 @@ const CompetitorDetailPage: React.FC = () => {
                 Your browser does not support the video tag.
               </video>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Creative Details Modal */}
+      {selectedCreative && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedCreative(null)}
+        >
+          <div className="relative max-w-2xl w-full max-h-[90vh] overflow-y-auto bg-gray-900 rounded-xl p-6 border border-gray-700">
+            <button
+              onClick={() => setSelectedCreative(null)}
+              className="absolute top-4 right-4 z-10 bg-gray-800 text-white rounded-full p-2 hover:bg-gray-700 transition-all"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            <div onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-2xl font-bold text-white mb-6">
+                {selectedCreative.platform} {selectedCreative.post_type} Details
+              </h3>
+
+              {/* Image/Video Preview */}
+              {selectedCreative.image_url && (
+                <div className="mb-6">
+                  <img
+                    src={selectedCreative.image_url}
+                    alt="Creative preview"
+                    className="w-full h-64 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+
+              {selectedCreative.video_url && (
+                <div className="mb-6">
+                  <video
+                    src={selectedCreative.video_url}
+                    controls
+                    className="w-full h-64 object-cover rounded-lg"
+                    poster={selectedCreative.image_url}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              )}
+
+              {/* Full Caption */}
+              {selectedCreative.caption && (
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold text-white mb-2">
+                    Caption
+                  </h4>
+                  <p className="text-gray-300 leading-relaxed">
+                    {selectedCreative.caption}
+                  </p>
+                </div>
+              )}
+
+              {/* Engagement Metrics */}
+              <div className="mb-6">
+                <h4 className="text-lg font-semibold text-white mb-3">
+                  Engagement Metrics
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-800 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-bold text-red-400">
+                      {selectedCreative.likes_count || 0}
+                    </div>
+                    <div className="text-sm text-gray-400">Likes</div>
+                  </div>
+
+                  <div className="bg-gray-800 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-bold text-green-400">
+                      {selectedCreative.comments_count || 0}
+                    </div>
+                    <div className="text-sm text-gray-400">Comments</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Post Details */}
+              <div className="mb-6">
+                <h4 className="text-lg font-semibold text-white mb-3">
+                  Post Information
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Platform:</span>
+                    <span className="text-white capitalize">
+                      {selectedCreative.platform}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Post Type:</span>
+                    <span className="text-white capitalize">
+                      {selectedCreative.post_type}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Posted At:</span>
+                    <span className="text-white">
+                      {selectedCreative.posted_at &&
+                        new Date(
+                          selectedCreative.posted_at
+                        ).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Paid Ad Details Modal */}
+      {selectedAd && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedAd(null)}
+        >
+          <div className="relative max-w-2xl w-full max-h-[90vh] overflow-y-auto bg-gray-900 rounded-xl p-6 border border-gray-700">
+            <button
+              onClick={() => setSelectedAd(null)}
+              className="absolute top-4 right-4 z-10 bg-gray-800 text-white rounded-full p-2 hover:bg-gray-700 transition-all"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            <div onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-2xl font-bold text-white mb-6">
+                Paid Ad Details
+              </h3>
+
+              {/* Image/Video Preview */}
+              {selectedAd.image_url && (
+                <div className="mb-6">
+                  <img
+                    src={selectedAd.image_url}
+                    alt="Ad preview"
+                    className="w-full h-64 object-cover rounded-lg"
+                  />
+                </div>
+              )}
+
+              {selectedAd.video_url && (
+                <div className="mb-6">
+                  <video
+                    src={selectedAd.video_url}
+                    controls
+                    className="w-full h-64 object-cover rounded-lg"
+                    poster={selectedAd.image_url}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              )}
+
+              {/* Carousel Images */}
+              {selectedAd.carousel_images &&
+                selectedAd.carousel_images.split(",").length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="text-lg font-semibold text-white mb-3">
+                      Carousel Images
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {selectedAd.carousel_images
+                        .split(",")
+                        .map((imageUrl: string, index: number) => (
+                          <img
+                            key={index}
+                            src={imageUrl}
+                            alt={`Carousel ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg"
+                          />
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+              {/* Ad Copy */}
+              {selectedAd.ad_copy && (
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold text-white mb-2">
+                    Ad Copy
+                  </h4>
+                  <p className="text-gray-300 leading-relaxed">
+                    {selectedAd.ad_copy}
+                  </p>
+                </div>
+              )}
+
+              {/* Ad Information */}
+              <div className="mb-6">
+                <h4 className="text-lg font-semibold text-white mb-3">
+                  Ad Information
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Title:</span>
+                    <span className="text-white">{selectedAd.ad_title}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Platform:</span>
+                    <span className="text-white capitalize">
+                      {selectedAd.platform}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Status:</span>
+                    <span
+                      className={`font-medium ${
+                        selectedAd.status === "active"
+                          ? "text-green-400"
+                          : "text-white"
+                      }`}
+                    >
+                      {selectedAd.status === "active"
+                        ? "Active"
+                        : selectedAd.status}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Start Date:</span>
+                    <span className="text-white">
+                      {selectedAd.start_date &&
+                        new Date(selectedAd.start_date).toLocaleDateString()}
+                    </span>
+                  </div>
+                  {selectedAd.cta_text && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">CTA Text:</span>
+                      <span className="text-white">{selectedAd.cta_text}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
