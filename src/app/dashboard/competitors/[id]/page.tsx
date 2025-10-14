@@ -342,43 +342,45 @@ const CompetitorDetailPage: React.FC = () => {
                                   <div className="flex overflow-x-auto gap-2 pb-2">
                                     {ad.carousel_images
                                       .split(",")
-                                      .map((imageUrl, index) => (
-                                        <div
-                                          key={index}
-                                          className="relative group cursor-pointer flex-shrink-0"
-                                        >
-                                          <img
-                                            src={imageUrl}
-                                            alt={`${
-                                              ad.ad_title || "Carousel"
-                                            } - Image ${index + 1}`}
-                                            className="w-32 h-32 object-cover rounded-lg"
-                                            onClick={() =>
-                                              setSelectedMedia({
-                                                type: "image",
-                                                url: imageUrl,
-                                              })
-                                            }
-                                          />
-                                          <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                              <svg
-                                                className="w-6 h-6 text-white"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                              >
-                                                <path
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                  strokeWidth={2}
-                                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                                                />
-                                              </svg>
+                                      .map(
+                                        (imageUrl: string, index: number) => (
+                                          <div
+                                            key={index}
+                                            className="relative group cursor-pointer flex-shrink-0"
+                                          >
+                                            <img
+                                              src={imageUrl}
+                                              alt={`${
+                                                ad.ad_title || "Carousel"
+                                              } - Image ${index + 1}`}
+                                              className="w-32 h-32 object-cover rounded-lg"
+                                              onClick={() =>
+                                                setSelectedMedia({
+                                                  type: "image",
+                                                  url: imageUrl,
+                                                })
+                                              }
+                                            />
+                                            <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                <svg
+                                                  className="w-6 h-6 text-white"
+                                                  fill="none"
+                                                  stroke="currentColor"
+                                                  viewBox="0 0 24 24"
+                                                >
+                                                  <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                                                  />
+                                                </svg>
+                                              </div>
                                             </div>
                                           </div>
-                                        </div>
-                                      ))}
+                                        )
+                                      )}
                                   </div>
                                 </div>
                               )}
@@ -440,10 +442,14 @@ const CompetitorDetailPage: React.FC = () => {
                                     ).toLocaleDateString()}
                                   </span>
                                 )}
-                                <span className="text-green-400 font-medium">
-                                  {ad.status === "active"
-                                    ? "Active"
-                                    : ad.status}
+                                <span
+                                  className={`font-medium ${
+                                    ad.is_active
+                                      ? "text-green-400"
+                                      : "text-red-400"
+                                  }`}
+                                >
+                                  {ad.is_active ? "Active" : "Expired"}
                                 </span>
                               </div>
                               <div className="text-xs text-blue-400 mt-2 opacity-0 hover:opacity-100 transition-opacity">
@@ -693,6 +699,56 @@ const CompetitorDetailPage: React.FC = () => {
                               </div>
                             )}
 
+                            {creative.carousel_images &&
+                              creative.carousel_images.split(",").length >
+                                0 && (
+                                <div className="mb-3">
+                                  <div className="flex overflow-x-auto gap-2 pb-2">
+                                    {creative.carousel_images
+                                      .split(",")
+                                      .map(
+                                        (imageUrl: string, index: number) => (
+                                          <div
+                                            key={index}
+                                            className="relative group cursor-pointer flex-shrink-0"
+                                          >
+                                            <img
+                                              src={imageUrl}
+                                              alt={`${
+                                                creative.caption || "Carousel"
+                                              } - Image ${index + 1}`}
+                                              className="w-32 h-32 object-cover rounded-lg"
+                                              onClick={() =>
+                                                setSelectedMedia({
+                                                  type: "image",
+                                                  url: imageUrl,
+                                                })
+                                              }
+                                            />
+                                            <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                <svg
+                                                  className="w-6 h-6 text-white"
+                                                  fill="none"
+                                                  stroke="currentColor"
+                                                  viewBox="0 0 24 24"
+                                                >
+                                                  <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                                                  />
+                                                </svg>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        )
+                                      )}
+                                  </div>
+                                </div>
+                              )}
+
                             {creative.video_url && (
                               <div className="relative group cursor-pointer">
                                 <video
@@ -807,6 +863,55 @@ const CompetitorDetailPage: React.FC = () => {
                                 </div>
                               </div>
                             )}
+
+                            {post.carousel_images &&
+                              post.carousel_images.split(",").length > 0 && (
+                                <div className="mb-3">
+                                  <div className="flex overflow-x-auto gap-2 pb-2">
+                                    {post.carousel_images
+                                      .split(",")
+                                      .map(
+                                        (imageUrl: string, index: number) => (
+                                          <div
+                                            key={index}
+                                            className="relative group cursor-pointer flex-shrink-0"
+                                          >
+                                            <img
+                                              src={imageUrl}
+                                              alt={`${
+                                                post.caption || "Carousel"
+                                              } - Image ${index + 1}`}
+                                              className="w-32 h-32 object-cover rounded-lg"
+                                              onClick={() =>
+                                                setSelectedMedia({
+                                                  type: "image",
+                                                  url: imageUrl,
+                                                })
+                                              }
+                                            />
+                                            <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                <svg
+                                                  className="w-6 h-6 text-white"
+                                                  fill="none"
+                                                  stroke="currentColor"
+                                                  viewBox="0 0 24 24"
+                                                >
+                                                  <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                                                  />
+                                                </svg>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        )
+                                      )}
+                                  </div>
+                                </div>
+                              )}
                             <div
                               className="text-sm text-gray-300 cursor-pointer hover:bg-gray-800 rounded-lg p-2 transition-colors"
                               onClick={() => setSelectedCreative(post)}
@@ -1264,6 +1369,28 @@ const CompetitorDetailPage: React.FC = () => {
                 </div>
               )}
 
+              {/* Carousel Images */}
+              {selectedCreative.carousel_images &&
+                selectedCreative.carousel_images.split(",").length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="text-lg font-semibold text-white mb-3">
+                      Carousel Images
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {selectedCreative.carousel_images
+                        .split(",")
+                        .map((imageUrl: string, index: number) => (
+                          <img
+                            key={index}
+                            src={imageUrl}
+                            alt={`Carousel ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg"
+                          />
+                        ))}
+                    </div>
+                  </div>
+                )}
+
               {/* Full Caption */}
               {selectedCreative.caption && (
                 <div className="mb-6">
@@ -1441,14 +1568,10 @@ const CompetitorDetailPage: React.FC = () => {
                     <span className="text-gray-400">Status:</span>
                     <span
                       className={`font-medium ${
-                        selectedAd.status === "active"
-                          ? "text-green-400"
-                          : "text-white"
+                        selectedAd.is_active ? "text-green-400" : "text-red-400"
                       }`}
                     >
-                      {selectedAd.status === "active"
-                        ? "Active"
-                        : selectedAd.status}
+                      {selectedAd.is_active ? "Active" : "Expired"}
                     </span>
                   </div>
                   <div className="flex justify-between">
