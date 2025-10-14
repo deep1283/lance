@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { CompetitorWithStats } from "@/types/dashboard";
+import { CompetitorWithStats, Competitor } from "@/types/dashboard";
 import { supabase } from "@/lib/supabase";
 
 const CompetitorOverview: React.FC = () => {
@@ -35,6 +35,7 @@ const CompetitorOverview: React.FC = () => {
       // Get stats for each competitor
       const competitorsWithStats = await Promise.all(
         (userCompetitors || []).map(async (uc: any) => {
+          // eslint-disable-line @typescript-eslint/no-explicit-any
           const competitor = uc.competitors;
 
           // Get ad count
@@ -52,12 +53,17 @@ const CompetitorOverview: React.FC = () => {
           // Get total engagement
           const { data: creatives } = await supabase
             .from("competitor_creatives")
-            .select("engagement_count")
+            .select("likes_count, views_count, comments_count, post_type")
             .eq("competitor_id", competitor.id);
 
           const totalEngagement =
-            creatives?.reduce((sum, c) => sum + (c.engagement_count || 0), 0) ||
-            0;
+            creatives?.reduce((sum, c) => {
+              if (c.post_type === "reel") {
+                return sum + (c.likes_count || 0) + (c.views_count || 0);
+              } else {
+                return sum + (c.likes_count || 0);
+              }
+            }, 0) || 0;
 
           return {
             ...competitor,

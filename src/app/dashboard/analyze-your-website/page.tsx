@@ -50,7 +50,8 @@ const AnalyzeYourWebsitePage: React.FC = () => {
               Analyze Your Website
             </h1>
             <p className="text-gray-400 mb-6 sm:mb-8 text-sm sm:text-base">
-              Get AI-powered insights about your website's performance and SEO
+              Get AI-powered insights about your website&apos;s performance and
+              SEO
             </p>
 
             <div className="bg-gray-800 rounded-lg p-6 sm:p-8 border border-gray-700">
@@ -74,9 +75,9 @@ const AnalyzeYourWebsitePage: React.FC = () => {
                   Coming Soon
                 </h2>
                 <p className="text-gray-400">
-                  Website analysis feature is under development. You'll be able
-                  to analyze your website's SEO performance, speed, and
-                  competitive positioning.
+                  Website analysis feature is under development. You&apos;ll be
+                  able to analyze your website&apos;s SEO performance, speed,
+                  and competitive positioning.
                 </p>
               </div>
 

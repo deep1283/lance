@@ -32,10 +32,11 @@ export interface Ad {
   ad_title?: string;
   ad_copy?: string;
   image_url?: string;
+  video_url?: string;
+  carousel_images?: string;
   cta_text?: string;
   start_date?: string;
-  end_date?: string;
-  status: string;
+  is_active: boolean;
   library_id?: string;
   analyzed_at: string;
 }
@@ -44,10 +45,14 @@ export interface Creative {
   id: string;
   competitor_id: string;
   platform?: string;
-  post_url?: string;
   image_url?: string;
+  video_url?: string;
+  carousel_images?: string;
   caption?: string;
-  engagement_count: number;
+  post_type?: string;
+  likes_count?: number;
+  views_count?: number;
+  comments_count?: number;
   posted_at: string;
 }
 
@@ -55,8 +60,8 @@ export interface CompetitorWebsite {
   id: string;
   competitor_id: string;
   speed_score?: number;
-  keywords?: any;
-  meta_tags?: any;
+  keywords?: string[];
+  meta_tags?: Record<string, string>;
   gpt_analysis?: string;
   analyzed_at: string;
 }
@@ -66,8 +71,8 @@ export interface AnalyzedWebsite {
   user_id: string;
   website_url: string;
   speed_score?: number;
-  keywords?: any;
-  meta_tags?: any;
+  keywords?: string[];
+  meta_tags?: Record<string, string>;
   gpt_analysis?: string;
   analyzed_at: string;
 }

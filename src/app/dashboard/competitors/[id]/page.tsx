@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { Competitor, Ad, Creative } from "@/types/dashboard";
 import DashboardSidebar from "@/components/dashboard/Sidebar";
 import DashboardHeader from "@/components/dashboard/Header";
+import { useAIAnalysis } from "@/hooks/useAIAnalysis";
 import {
   BarChart,
   Bar,
@@ -29,16 +30,28 @@ const CompetitorDetailPage: React.FC = () => {
   const [competitor, setCompetitor] = useState<Competitor | null>(null);
   const [activeTab, setActiveTab] = useState<"ads" | "organic">("ads");
   const [loadingData, setLoadingData] = useState(true);
-  const [ads, setAds] = useState<any[]>([]);
-  const [creatives, setCreatives] = useState<any[]>([]);
-  const [topPosts, setTopPosts] = useState<any[]>([]);
+  const [ads, setAds] = useState<Ad[]>([]);
+  const [creatives, setCreatives] = useState<Creative[]>([]);
+  const [topPosts, setTopPosts] = useState<Creative[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<{
     type: "image" | "video";
     url: string;
   } | null>(null);
 
-  const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
-  const [selectedAd, setSelectedAd] = useState<any | null>(null);
+  const [selectedCreative, setSelectedCreative] = useState<Creative | null>(
+    null
+  );
+  const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
+
+  // AI Analysis hooks
+  const paidAdsAnalysis = useAIAnalysis(
+    params.id as string,
+    "paid_ads_analysis"
+  );
+  const organicAnalysis = useAIAnalysis(
+    params.id as string,
+    "organic_content_analysis"
+  );
 
   useEffect(() => {
     if (!loading && !user) {
@@ -262,32 +275,18 @@ const CompetitorDetailPage: React.FC = () => {
                     </div>
 
                     <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1f1f1f]">
-                      <p className="text-gray-300 text-sm leading-relaxed">
-                        {ads.length > 0 ? (
-                          <>
-                            <strong className="text-violet-400">
-                              {competitor?.name}'s Paid Ads Strategy:
-                            </strong>{" "}
-                            The competitor is leveraging seasonal marketing with
-                            strong emotional appeal through festive themes.
-                            Their jewelry-focused campaigns target high-value
-                            customers (₹3000+ purchases) with compelling gift
-                            offers. The visual strategy emphasizes traditional
-                            Indian aesthetics combined with modern presentation,
-                            creating aspirational content that drives
-                            conversions.
-                          </>
-                        ) : (
-                          <>
-                            <strong className="text-red-400">
-                              No Paid Ads Analysis Available:
-                            </strong>{" "}
-                            {competitor?.name} is not currently running any paid
-                            ads. No advertising strategy data is available for
-                            analysis.
-                          </>
-                        )}
-                      </p>
+                      {paidAdsAnalysis.loading ? (
+                        <div className="flex items-center space-x-3">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-violet-500"></div>
+                          <p className="text-gray-300 text-sm">
+                            Generating AI analysis...
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-gray-300 text-sm leading-relaxed">
+                          {paidAdsAnalysis.analysis}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -312,7 +311,7 @@ const CompetitorDetailPage: React.FC = () => {
                                   onClick={() =>
                                     setSelectedMedia({
                                       type: "image",
-                                      url: ad.image_url,
+                                      url: ad.image_url || "",
                                     })
                                   }
                                 />
@@ -392,11 +391,11 @@ const CompetitorDetailPage: React.FC = () => {
                                   onClick={() =>
                                     setSelectedMedia({
                                       type: "video",
-                                      url: ad.video_url,
+                                      url: ad.video_url || "",
                                     })
                                   }
                                   preload="metadata"
-                                  poster={ad.image_url} // Use image as poster if available
+                                  poster={ad.image_url || undefined} // Use image as poster if available
                                 />
                                 {/* Overlay fix: allow clicks through and disable base opacity */}
                                 <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
@@ -637,28 +636,26 @@ const CompetitorDetailPage: React.FC = () => {
                     </div>
 
                     <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1f1f1f]">
-                      <p className="text-gray-300 text-sm leading-relaxed">
-                        <strong className="text-violet-400">
-                          Shreehari's Organic Strategy:
-                        </strong>{" "}
-                        The brand maintains strong community engagement through
-                        authentic storytelling and cultural celebration. Their
-                        organic content focuses on showcasing jewelry
-                        craftsmanship, customer testimonials, and
-                        behind-the-scenes content. The approach emphasizes
-                        trust-building and brand loyalty through consistent,
-                        high-quality visual content that resonates with
-                        traditional Indian values while appealing to modern
-                        aesthetics.
-                      </p>
+                      {organicAnalysis.loading ? (
+                        <div className="flex items-center space-x-3">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-violet-500"></div>
+                          <p className="text-gray-300 text-sm">
+                            Generating AI analysis...
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-gray-300 text-sm leading-relaxed">
+                          {organicAnalysis.analysis}
+                        </p>
+                      )}
                     </div>
                   </div>
 
-                  {/* Last 7 Days Posts */}
+                  {/* Recent Posts */}
                   {creatives.length > 0 && (
                     <div className="mb-8">
                       <h4 className="text-md font-semibold text-white mb-4">
-                        Last 7 Days Posts ({creatives.length})
+                        Recent Posts ({creatives.length})
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {creatives.map((creative, index) => (
@@ -675,7 +672,7 @@ const CompetitorDetailPage: React.FC = () => {
                                   onClick={() =>
                                     setSelectedMedia({
                                       type: "image",
-                                      url: creative.image_url,
+                                      url: creative.image_url || "",
                                     })
                                   }
                                 />
@@ -757,11 +754,11 @@ const CompetitorDetailPage: React.FC = () => {
                                   onClick={() =>
                                     setSelectedMedia({
                                       type: "video",
-                                      url: creative.video_url,
+                                      url: creative.video_url || "",
                                     })
                                   }
                                   preload="metadata"
-                                  poster={creative.image_url}
+                                  poster={creative.image_url || undefined}
                                 />
                                 <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
                                   <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -839,7 +836,7 @@ const CompetitorDetailPage: React.FC = () => {
                                   onClick={() =>
                                     setSelectedMedia({
                                       type: "video",
-                                      url: post.video_url,
+                                      url: post.video_url || "",
                                     })
                                   }
                                   preload="metadata"

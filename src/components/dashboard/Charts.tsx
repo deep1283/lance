@@ -15,7 +15,7 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { ChartData, TimeSeriesData } from "@/types/dashboard";
+import { ChartData } from "@/types/dashboard";
 import { supabase } from "@/lib/supabase";
 
 const DashboardCharts: React.FC = () => {
@@ -23,7 +23,9 @@ const DashboardCharts: React.FC = () => {
   const [platformDistribution, setPlatformDistribution] = useState<ChartData[]>(
     []
   );
-  const [adTrends, setAdTrends] = useState<TimeSeriesData[]>([]);
+  const [adTrends, setAdTrends] = useState<Record<string, string | number>[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,7 +34,7 @@ const DashboardCharts: React.FC = () => {
 
   const fetchAdTrendData = async (
     competitorIds: string[],
-    userCompetitors: any[]
+    userCompetitors: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
   ) => {
     try {
       console.log(
@@ -111,7 +113,7 @@ const DashboardCharts: React.FC = () => {
           month: "short",
           day: "numeric",
         });
-        const dataPoint: any = { date: dateStr };
+        const dataPoint: Record<string, string | number> = { date: dateStr };
 
         userCompetitors.forEach((uc) => {
           dataPoint[uc.competitors.name] =
@@ -145,6 +147,7 @@ const DashboardCharts: React.FC = () => {
       // Fetch competitor activity data (PAID ADS ONLY)
       const competitorActivityData = await Promise.all(
         userCompetitors.map(async (uc: any) => {
+          // eslint-disable-line @typescript-eslint/no-explicit-any
           const { count: adCount } = await supabase
             .from("competitor_ads")
             .select("*", { count: "exact", head: true })

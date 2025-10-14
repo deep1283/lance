@@ -9,12 +9,19 @@ import CompetitorOverview from "@/components/dashboard/CompetitorOverview";
 import DashboardCharts from "@/components/dashboard/Charts";
 import { CompetitorWithStats } from "@/types/dashboard";
 import { supabase } from "@/lib/supabase";
+import { useAIAnalysis } from "@/hooks/useAIAnalysis";
 
 const DashboardPage: React.FC = () => {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [competitors, setCompetitors] = useState<CompetitorWithStats[]>([]);
   const [dashboardLoading, setDashboardLoading] = useState(true);
+
+  // AI Analysis for competitive intelligence (using user ID for comprehensive analysis)
+  const competitiveIntelligence = useAIAnalysis(
+    user?.id || "",
+    "competitive_intelligence"
+  );
 
   useEffect(() => {
     if (!loading && !user) {
@@ -48,22 +55,23 @@ const DashboardPage: React.FC = () => {
 
       const competitorsWithStats = await Promise.all(
         (userCompetitors || []).map(async (uc: any) => {
+          // eslint-disable-line @typescript-eslint/no-explicit-any
           const competitor = uc.competitors;
 
           const { count: adCount } = await supabase
             .from("competitor_ads")
             .select("*", { count: "exact", head: true })
-            .eq("competitor_id", competitor.id);
+            .eq("competitor_id", competitor?.id);
 
           const { count: creativeCount } = await supabase
             .from("competitor_creatives")
             .select("*", { count: "exact", head: true })
-            .eq("competitor_id", competitor.id);
+            .eq("competitor_id", competitor?.id);
 
           const { data: creatives } = await supabase
             .from("competitor_creatives")
             .select("likes_count, views_count, post_type")
-            .eq("competitor_id", competitor.id);
+            .eq("competitor_id", competitor?.id);
 
           const totalEngagement =
             creatives?.reduce((sum, c) => {
@@ -535,15 +543,18 @@ const DashboardPage: React.FC = () => {
               </h2>
             </div>
             <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1f1f1f]">
-              <p className="text-gray-300 text-sm leading-relaxed">
-                Based on your competitor analysis, we've identified key trends
-                and opportunities. Your competitors are focusing heavily on
-                video content and social media engagement. Consider increasing
-                your video ad spend and optimizing for mobile-first experiences.
-                The data shows a 23% increase in competitor activity this month,
-                with Instagram and Facebook being the primary platforms for
-                engagement.
-              </p>
+              {competitiveIntelligence.loading ? (
+                <div className="flex items-center space-x-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-violet-500"></div>
+                  <p className="text-gray-300 text-sm">
+                    Generating competitive intelligence...
+                  </p>
+                </div>
+              ) : (
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  {competitiveIntelligence.analysis}
+                </p>
+              )}
             </div>
           </div>
 
