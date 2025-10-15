@@ -114,7 +114,7 @@ const CompetitorDetailPage: React.FC = () => {
         .from("competitor_creatives")
         .select("*")
         .eq("competitor_id", params.id)
-        .order("posted_at", { ascending: false });
+        .order("competitor_id, posted_at", { ascending: false });
 
       if (creativesError) {
         console.error("Error fetching creatives:", creativesError);
@@ -129,7 +129,7 @@ const CompetitorDetailPage: React.FC = () => {
         .from("competitor_top_posts")
         .select("*")
         .eq("competitor_id", params.id)
-        .order("likes_count", { ascending: false });
+        .order("competitor_id, likes_count", { ascending: false });
 
       if (topPostsError) {
         console.error("Error fetching top posts:", topPostsError);

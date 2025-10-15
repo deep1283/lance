@@ -53,6 +53,17 @@ const DashboardCharts: React.FC = () => {
         return [];
       }
 
+      // Fetch recent posts for these competitors
+      const { data: recentPosts, error: postsError } = await supabase
+        .from("competitor_creatives")
+        .select("competitor_id, posted_at")
+        .in("competitor_id", competitorIds);
+
+      if (postsError) {
+        console.error("Error fetching recent posts:", postsError);
+        // Continue without recent posts data
+      }
+
       console.log("Fetched ads:", ads);
 
       // Create date range for last 30 days to capture more ad activity
@@ -107,6 +118,30 @@ const DashboardCharts: React.FC = () => {
         }
       });
 
+      // Count recent posts per competitor per day
+      recentPosts?.forEach((post) => {
+        const postDate = new Date(post.posted_at);
+        const dateStr = postDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+
+        // Find competitor name
+        const competitor = userCompetitors.find(
+          (uc) => uc.competitor_id === post.competitor_id
+        );
+
+        if (competitor && competitorData[competitor.competitors.name]) {
+          const currentCount =
+            competitorData[competitor.competitors.name][dateStr] || 0;
+          competitorData[competitor.competitors.name][dateStr] =
+            currentCount + 1;
+          console.log(
+            `Added 1 recent post for ${competitor.competitors.name} on ${dateStr}`
+          );
+        }
+      });
+
       // Convert to chart format
       const chartData = last30Days.map((date) => {
         const dateStr = date.toLocaleDateString("en-US", {
@@ -144,7 +179,7 @@ const DashboardCharts: React.FC = () => {
 
       const competitorIds = userCompetitors.map((uc) => uc.competitor_id);
 
-      // Fetch competitor activity data (PAID ADS ONLY)
+      // Fetch competitor activity data (PAID ADS + RECENT POSTS)
       const competitorActivityData = await Promise.all(
         userCompetitors.map(async (uc: any) => {
           // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -153,17 +188,27 @@ const DashboardCharts: React.FC = () => {
             .select("*", { count: "exact", head: true })
             .eq("competitor_id", uc.competitor_id);
 
+          const { count: recentPostsCount } = await supabase
+            .from("competitor_creatives")
+            .select("*", { count: "exact", head: true })
+            .eq("competitor_id", uc.competitor_id);
+
           return {
             name: uc.competitors.name,
-            value: adCount || 0,
+            value: (adCount || 0) + (recentPostsCount || 0),
             color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
           };
         })
       );
 
-      // Fetch Video vs Image distribution (PAID ADS ONLY)
+      // Fetch Video vs Image distribution (PAID ADS + RECENT POSTS)
       const { data: ads } = await supabase
         .from("competitor_ads")
+        .select("image_url, video_url")
+        .in("competitor_id", competitorIds);
+
+      const { data: recentPosts } = await supabase
+        .from("competitor_creatives")
         .select("image_url, video_url")
         .in("competitor_id", competitorIds);
 
@@ -175,6 +220,14 @@ const DashboardCharts: React.FC = () => {
         if (ad.video_url) {
           videoCount++;
         } else if (ad.image_url) {
+          imageCount++;
+        }
+      });
+
+      recentPosts?.forEach((post) => {
+        if (post.video_url) {
+          videoCount++;
+        } else if (post.image_url) {
           imageCount++;
         }
       });
