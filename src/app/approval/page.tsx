@@ -40,9 +40,9 @@ const ApprovalPage: React.FC = () => {
             console.warn("Error details:", error.message || error);
             setIsApproved(false);
           } else if (data?.is_approved === true) {
-            // User is approved, redirect to welcome page
+            // User is approved, redirect to dashboard
             setIsApproved(true);
-            router.push("/welcome");
+            router.push("/dashboard");
           } else {
             // User is not approved, stay on this page
             setIsApproved(false);
