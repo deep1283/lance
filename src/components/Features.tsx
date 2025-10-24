@@ -60,6 +60,8 @@ const Features: React.FC = () => {
                 className="rounded-3xl shadow-lg"
                 placeholder="blur"
                 priority
+                quality={80}
+                sizes="(max-width: 768px) 288px, (max-width: 1024px) 320px, 384px"
               />
             </motion.div>
             <div className="text-white text-center md:text-left mt-8 sm:mt-10 md:mt-0 font-[var(--font-roboto)]">
@@ -79,7 +81,7 @@ const Features: React.FC = () => {
             variants={fadeIn("up", 0.2)}
             initial="hidden"
             whileInView="show"
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "100px" }}
           >
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -90,6 +92,8 @@ const Features: React.FC = () => {
                 alt="SEO analysis dashboard showing keyword insights"
                 className="rounded-3xl shadow-lg"
                 placeholder="blur"
+                quality={80}
+                sizes="(max-width: 768px) 288px, (max-width: 1024px) 320px, 384px"
               />
             </motion.div>
             <div className="text-white text-center md:text-left mt-8 sm:mt-10 md:mt-0 font-[var(--font-roboto)]">
@@ -109,7 +113,7 @@ const Features: React.FC = () => {
             variants={fadeIn("up", 0.3)}
             initial="hidden"
             whileInView="show"
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "100px" }}
           >
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -120,6 +124,8 @@ const Features: React.FC = () => {
                 alt="Trend analysis graph with seasonal marketing spikes"
                 className="rounded-3xl shadow-lg"
                 placeholder="blur"
+                quality={80}
+                sizes="(max-width: 768px) 288px, (max-width: 1024px) 320px, 384px"
               />
             </motion.div>
             <div className="text-white text-center md:text-left mt-8 sm:mt-10 md:mt-0 font-[var(--font-roboto)]">

@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
-import { Competitor, Ad, Creative } from '@/types/dashboard';
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/lib/supabase";
+import { Competitor, Ad, Creative } from "@/types/dashboard";
 
 interface CompetitorData {
   competitor: Competitor | null;
@@ -49,38 +49,46 @@ export const useCompetitorData = (competitorId: string) => {
 
       // Fetch competitor data first
       const { data: competitorData, error: competitorError } = await supabase
-        .from('competitors')
-        .select('*')
-        .eq('id', competitorId)
+        .from("competitors")
+        .select("*")
+        .eq("id", competitorId)
         .single();
 
       if (competitorError) throw competitorError;
 
       // Fetch all other data in parallel
-      const [adsResult, creativesResult, topPostsResult] = await Promise.allSettled([
-        supabase
-          .from('competitor_ads')
-          .select('*')
-          .eq('competitor_id', competitorId)
-          .order('start_date', { ascending: false }),
-        
-        supabase
-          .from('competitor_creatives')
-          .select('*')
-          .eq('competitor_id', competitorId)
-          .order('posted_at', { ascending: false }),
-        
-        supabase
-          .from('competitor_top_posts')
-          .select('*')
-          .eq('competitor_id', competitorId)
-          .order('posted_at', { ascending: false })
-      ]);
+      const [adsResult, creativesResult, topPostsResult] =
+        await Promise.allSettled([
+          supabase
+            .from("competitor_ads")
+            .select("*")
+            .eq("competitor_id", competitorId)
+            .order("start_date", { ascending: false }),
+
+          supabase
+            .from("competitor_creatives")
+            .select("*")
+            .eq("competitor_id", competitorId)
+            .order("posted_at", { ascending: false }),
+
+          supabase
+            .from("competitor_top_posts")
+            .select("*")
+            .eq("competitor_id", competitorId)
+            .order("posted_at", { ascending: false }),
+        ]);
 
       // Process results
-      const ads = adsResult.status === 'fulfilled' ? (adsResult.value.data || []) : [];
-      const creatives = creativesResult.status === 'fulfilled' ? (creativesResult.value.data || []) : [];
-      const topPosts = topPostsResult.status === 'fulfilled' ? (topPostsResult.value.data || []) : [];
+      const ads =
+        adsResult.status === "fulfilled" ? adsResult.value.data || [] : [];
+      const creatives =
+        creativesResult.status === "fulfilled"
+          ? creativesResult.value.data || []
+          : [];
+      const topPosts =
+        topPostsResult.status === "fulfilled"
+          ? topPostsResult.value.data || []
+          : [];
 
       const competitorDataResult = {
         competitor: competitorData,
@@ -100,7 +108,7 @@ export const useCompetitorData = (competitorId: string) => {
       setCreativesLoading(false);
       setTopPostsLoading(false);
     } catch (error) {
-      console.error('Error fetching competitor data:', error);
+      console.error("Error fetching competitor data:", error);
     } finally {
       setLoading(false);
     }

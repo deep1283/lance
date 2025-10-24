@@ -5,9 +5,9 @@ interface SkeletonLoaderProps {
   count?: number;
 }
 
-const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({ 
-  type = "card", 
-  count = 1 
+const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
+  type = "card",
+  count = 1,
 }) => {
   const renderSkeleton = () => {
     switch (type) {
@@ -22,7 +22,7 @@ const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
             </div>
           </div>
         );
-      
+
       case "grid":
         return (
           <div className="bg-gray-800 rounded-lg p-4 animate-pulse">
@@ -31,7 +31,7 @@ const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
             <div className="h-3 bg-gray-700 rounded w-1/2"></div>
           </div>
         );
-      
+
       case "list":
         return (
           <div className="bg-gray-800 rounded-lg p-4 animate-pulse mb-3">
@@ -44,7 +44,7 @@ const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
             </div>
           </div>
         );
-      
+
       default:
         return (
           <div className="bg-gray-800 rounded-lg p-4 animate-pulse">
@@ -58,9 +58,7 @@ const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
   return (
     <>
       {Array.from({ length: count }, (_, index) => (
-        <div key={index}>
-          {renderSkeleton()}
-        </div>
+        <div key={index}>{renderSkeleton()}</div>
       ))}
     </>
   );

@@ -96,28 +96,29 @@ const CompetitorDetailPage: React.FC = () => {
       setCompetitor(competitorData);
 
       // Fetch all data in parallel for much faster loading
-      const [adsResult, creativesResult, topPostsResult] = await Promise.allSettled([
-        // Fetch competitor ads
-        supabase
-          .from("competitor_ads")
-          .select("*")
-          .eq("competitor_id", params.id)
-          .order("start_date", { ascending: false }),
-        
-        // Fetch competitor creatives (organic social media)
-        supabase
-          .from("competitor_creatives")
-          .select("*")
-          .eq("competitor_id", params.id)
-          .order("posted_at", { ascending: false }),
-        
-        // Fetch competitor top posts (viral reels)
-        supabase
-          .from("competitor_top_posts")
-          .select("*")
-          .eq("competitor_id", params.id)
-          .order("posted_at", { ascending: false })
-      ]);
+      const [adsResult, creativesResult, topPostsResult] =
+        await Promise.allSettled([
+          // Fetch competitor ads
+          supabase
+            .from("competitor_ads")
+            .select("*")
+            .eq("competitor_id", params.id)
+            .order("start_date", { ascending: false }),
+
+          // Fetch competitor creatives (organic social media)
+          supabase
+            .from("competitor_creatives")
+            .select("*")
+            .eq("competitor_id", params.id)
+            .order("posted_at", { ascending: false }),
+
+          // Fetch competitor top posts (viral reels)
+          supabase
+            .from("competitor_top_posts")
+            .select("*")
+            .eq("competitor_id", params.id)
+            .order("posted_at", { ascending: false }),
+        ]);
 
       // Process ads data
       if (adsResult.status === "fulfilled") {
@@ -136,7 +137,8 @@ const CompetitorDetailPage: React.FC = () => {
 
       // Process creatives data
       if (creativesResult.status === "fulfilled") {
-        const { data: creativesData, error: creativesError } = creativesResult.value;
+        const { data: creativesData, error: creativesError } =
+          creativesResult.value;
         if (creativesError) {
           console.error("Error fetching creatives:", creativesError);
           setCreatives([]);
@@ -151,7 +153,8 @@ const CompetitorDetailPage: React.FC = () => {
 
       // Process top posts data
       if (topPostsResult.status === "fulfilled") {
-        const { data: topPostsData, error: topPostsError } = topPostsResult.value;
+        const { data: topPostsData, error: topPostsError } =
+          topPostsResult.value;
         if (topPostsError) {
           console.error("Error fetching top posts:", topPostsError);
           setTopPosts([]);
