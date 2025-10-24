@@ -1588,6 +1588,14 @@ const CompetitorDetailPage: React.FC = () => {
                         new Date(selectedAd.start_date).toLocaleDateString()}
                     </span>
                   </div>
+                  {!selectedAd.is_active && selectedAd.end_date && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">End Date:</span>
+                      <span className="text-white">
+                        {new Date(selectedAd.end_date).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-gray-400">Title:</span>
                     <span className="text-white">{selectedAd.ad_title}</span>
