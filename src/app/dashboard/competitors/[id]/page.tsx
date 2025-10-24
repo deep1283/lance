@@ -9,6 +9,7 @@ import DashboardSidebar from "@/components/dashboard/Sidebar";
 import DashboardHeader from "@/components/dashboard/Header";
 import { useAIAnalysis } from "@/hooks/useAIAnalysis";
 import AIAnalysisDisplay from "@/components/AIAnalysisDisplay";
+import SkeletonLoader from "@/components/SkeletonLoader";
 import {
   BarChart,
   Bar,
@@ -34,6 +35,9 @@ const CompetitorDetailPage: React.FC = () => {
   const [ads, setAds] = useState<Ad[]>([]);
   const [creatives, setCreatives] = useState<Creative[]>([]);
   const [topPosts, setTopPosts] = useState<Creative[]>([]);
+  const [adsLoading, setAdsLoading] = useState(true);
+  const [creativesLoading, setCreativesLoading] = useState(true);
+  const [topPostsLoading, setTopPostsLoading] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<{
     type: "image" | "video";
     url: string;
@@ -91,50 +95,74 @@ const CompetitorDetailPage: React.FC = () => {
       if (competitorError) throw competitorError;
       setCompetitor(competitorData);
 
-      // Fetch competitor ads
-      const { data: adsData, error: adsError } = await supabase
-        .from("competitor_ads")
-        .select("*")
-        .eq("competitor_id", params.id)
-        .order("start_date", { ascending: false });
+      // Fetch all data in parallel for much faster loading
+      const [adsResult, creativesResult, topPostsResult] = await Promise.allSettled([
+        // Fetch competitor ads
+        supabase
+          .from("competitor_ads")
+          .select("*")
+          .eq("competitor_id", params.id)
+          .order("start_date", { ascending: false }),
+        
+        // Fetch competitor creatives (organic social media)
+        supabase
+          .from("competitor_creatives")
+          .select("*")
+          .eq("competitor_id", params.id)
+          .order("posted_at", { ascending: false }),
+        
+        // Fetch competitor top posts (viral reels)
+        supabase
+          .from("competitor_top_posts")
+          .select("*")
+          .eq("competitor_id", params.id)
+          .order("posted_at", { ascending: false })
+      ]);
 
-      if (adsError) {
-        console.error("Error fetching ads:", adsError);
+      // Process ads data
+      if (adsResult.status === "fulfilled") {
+        const { data: adsData, error: adsError } = adsResult.value;
+        if (adsError) {
+          console.error("Error fetching ads:", adsError);
+          setAds([]);
+        } else {
+          setAds(adsData || []);
+        }
+      } else {
+        console.error("Ads fetch failed:", adsResult.reason);
         setAds([]);
-      } else {
-        setAds(adsData || []);
-        // Ads data fetched successfully
       }
+      setAdsLoading(false);
 
-      // Fetch competitor creatives (organic social media)
-      const { data: creativesData, error: creativesError } = await supabase
-        .from("competitor_creatives")
-        .select("*")
-        .eq("competitor_id", params.id)
-        .order("posted_at", { ascending: false });
-
-      if (creativesError) {
-        console.error("Error fetching creatives:", creativesError);
+      // Process creatives data
+      if (creativesResult.status === "fulfilled") {
+        const { data: creativesData, error: creativesError } = creativesResult.value;
+        if (creativesError) {
+          console.error("Error fetching creatives:", creativesError);
+          setCreatives([]);
+        } else {
+          setCreatives(creativesData || []);
+        }
+      } else {
+        console.error("Creatives fetch failed:", creativesResult.reason);
         setCreatives([]);
-      } else {
-        setCreatives(creativesData || []);
-        // Creatives data fetched successfully
       }
+      setCreativesLoading(false);
 
-      // Fetch competitor top posts (viral reels)
-      const { data: topPostsData, error: topPostsError } = await supabase
-        .from("competitor_top_posts")
-        .select("*")
-        .eq("competitor_id", params.id)
-        .order("posted_at", { ascending: false });
-
-      if (topPostsError) {
-        console.error("Error fetching top posts:", topPostsError);
+      // Process top posts data
+      if (topPostsResult.status === "fulfilled") {
+        const { data: topPostsData, error: topPostsError } = topPostsResult.value;
+        if (topPostsError) {
+          console.error("Error fetching top posts:", topPostsError);
+          setTopPosts([]);
+        } else {
+          setTopPosts(topPostsData || []);
+        }
+      } else {
+        console.error("Top posts fetch failed:", topPostsResult.reason);
         setTopPosts([]);
-      } else {
-        setTopPosts(topPostsData || []);
-        // Top posts data fetched successfully
       }
+      setTopPostsLoading(false);
     } catch (error) {
       console.error("Error fetching competitor:", error);
       router.push("/dashboard");
@@ -289,7 +317,16 @@ const CompetitorDetailPage: React.FC = () => {
                   </div>
 
                   {/* Real Ads Display */}
-                  {ads.length > 0 && (
+                  {adsLoading ? (
+                    <div className="mb-8">
+                      <h4 className="text-md font-semibold text-white mb-4">
+                        Loading Ads...
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <SkeletonLoader type="grid" count={6} />
+                      </div>
+                    </div>
+                  ) : ads.length > 0 ? (
                     <div className="mb-8">
                       <h4 className="text-md font-semibold text-white mb-4">
                         Active Ads ({ads.length})
@@ -462,7 +499,7 @@ const CompetitorDetailPage: React.FC = () => {
                         ))}
                       </div>
                     </div>
-                  )}
+                  ) : null}
 
                   {/* Charts Grid */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -656,7 +693,16 @@ const CompetitorDetailPage: React.FC = () => {
                   </div>
 
                   {/* Recent Posts */}
-                  {creatives.length > 0 && (
+                  {creativesLoading ? (
+                    <div className="mb-8">
+                      <h4 className="text-md font-semibold text-white mb-4">
+                        Loading Recent Posts...
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <SkeletonLoader type="grid" count={6} />
+                      </div>
+                    </div>
+                  ) : creatives.length > 0 ? (
                     <div className="mb-8">
                       <h4 className="text-md font-semibold text-white mb-4">
                         Recent Posts ({creatives.length})
@@ -818,7 +864,7 @@ const CompetitorDetailPage: React.FC = () => {
                         ))}
                       </div>
                     </div>
-                  )}
+                  ) : null}
 
                   {/* Most Viral Posts */}
                   {topPosts.length > 0 && (

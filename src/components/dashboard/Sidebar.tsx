@@ -175,6 +175,7 @@ const DashboardSidebar: React.FC = () => {
           {/* Dashboard Overview */}
           <Link
             href="/dashboard"
+            prefetch={true}
             onClick={() => setIsMobileMenuOpen(false)}
             className={`flex items-center space-x-3 px-3 py-2.5 rounded-md transition-all duration-200 group ${
               isActive("/dashboard")
@@ -258,6 +259,7 @@ const DashboardSidebar: React.FC = () => {
                   <Link
                     key={competitor.id}
                     href={`/dashboard/competitors/${competitor.id}`}
+                    prefetch={true}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 group ${
                       isCompetitorActive(competitor.id)

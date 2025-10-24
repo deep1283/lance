@@ -4,10 +4,12 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { CompetitorWithStats } from "@/types/dashboard";
 import { supabase } from "@/lib/supabase";
+import { usePrefetch } from "@/hooks/usePrefetch";
 
 const CompetitorOverview: React.FC = () => {
   const [competitors, setCompetitors] = useState<CompetitorWithStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const { prefetchCompetitor } = usePrefetch();
 
   useEffect(() => {
     fetchCompetitorsWithStats();
@@ -130,6 +132,8 @@ const CompetitorOverview: React.FC = () => {
         <Link
           key={competitor.id}
           href={`/dashboard/competitors/${competitor.id}`}
+          prefetch={true}
+          onMouseEnter={() => prefetchCompetitor(competitor.id)}
           className="block"
         >
           <div className="bg-gray-800 rounded-lg p-4 sm:p-6 hover:bg-gray-750 transition-colors border border-gray-700">

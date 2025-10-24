@@ -1,16 +1,33 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import DashboardSidebar from "@/components/dashboard/Sidebar";
 import DashboardHeader from "@/components/dashboard/Header";
-import CompetitorOverview from "@/components/dashboard/CompetitorOverview";
-import DashboardCharts from "@/components/dashboard/Charts";
 import { CompetitorWithStats } from "@/types/dashboard";
 import { supabase } from "@/lib/supabase";
 import { useAIAnalysis } from "@/hooks/useAIAnalysis";
 import AIAnalysisDisplay from "@/components/AIAnalysisDisplay";
+
+// Lazy load heavy components
+const CompetitorOverview = dynamic(
+  () => import("@/components/dashboard/CompetitorOverview"),
+  {
+    loading: () => (
+      <div className="animate-pulse bg-gray-800 rounded-lg h-64"></div>
+    ),
+    ssr: false,
+  }
+);
+
+const DashboardCharts = dynamic(() => import("@/components/dashboard/Charts"), {
+  loading: () => (
+    <div className="animate-pulse bg-gray-800 rounded-lg h-96"></div>
+  ),
+  ssr: false,
+});
 
 const DashboardPage: React.FC = () => {
   const { user, loading } = useAuth();

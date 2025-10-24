@@ -20,13 +20,6 @@ interface RefreshJob {
   lastRefreshed: string;
 }
 
-/**
- * Check if analysis needs refresh (older than 2 days)
- */
-function needsRefresh(lastRefreshed: string): boolean {
-  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
-  return new Date(lastRefreshed) < twoDaysAgo;
-}
 
 /**
  * Get all analyses that need refresh
