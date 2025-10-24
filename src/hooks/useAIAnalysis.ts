@@ -77,7 +77,7 @@ async function getAIAnalysis(
         "Content-Type": "application/json",
         Authorization: `Bearer ${session?.access_token}`,
       },
-      body: JSON.stringify({ competitorId, analysisType }),
+      body: JSON.stringify({ competitorId, analysisType, retrieveOnly: true }),
     });
 
     if (!response.ok) {
@@ -172,11 +172,18 @@ export function useAIAnalysis(
 
   useEffect(() => {
     // Only fetch on initial load, not on every render
-    if (!hasInitialized.current && user && session && competitorId) {
+    // Also check if competitorId is not empty to avoid calls during initialization
+    if (
+      !hasInitialized.current &&
+      user &&
+      session &&
+      competitorId &&
+      competitorId.trim() !== ""
+    ) {
       hasInitialized.current = true;
       fetchAnalysis();
     }
-  }, [competitorId, analysisType, user, session]);
+  }, [competitorId, analysisType]);
 
   return { analysis, loading, error };
 }

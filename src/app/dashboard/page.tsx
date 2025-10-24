@@ -10,6 +10,7 @@ import DashboardCharts from "@/components/dashboard/Charts";
 import { CompetitorWithStats } from "@/types/dashboard";
 import { supabase } from "@/lib/supabase";
 import { useAIAnalysis } from "@/hooks/useAIAnalysis";
+import AIAnalysisDisplay from "@/components/AIAnalysisDisplay";
 
 const DashboardPage: React.FC = () => {
   const { user, loading } = useAuth();
@@ -551,9 +552,10 @@ const DashboardPage: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                <p className="text-gray-300 text-sm leading-relaxed">
-                  {competitiveIntelligence.analysis}
-                </p>
+                <AIAnalysisDisplay
+                  analysis={competitiveIntelligence.analysis}
+                  isLoading={competitiveIntelligence.loading}
+                />
               )}
             </div>
           </div>

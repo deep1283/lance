@@ -8,6 +8,7 @@ import { Competitor, Ad, Creative } from "@/types/dashboard";
 import DashboardSidebar from "@/components/dashboard/Sidebar";
 import DashboardHeader from "@/components/dashboard/Header";
 import { useAIAnalysis } from "@/hooks/useAIAnalysis";
+import AIAnalysisDisplay from "@/components/AIAnalysisDisplay";
 import {
   BarChart,
   Bar,
@@ -114,7 +115,7 @@ const CompetitorDetailPage: React.FC = () => {
         .from("competitor_creatives")
         .select("*")
         .eq("competitor_id", params.id)
-        .order("competitor_id, posted_at", { ascending: false });
+        .order("posted_at", { ascending: false });
 
       if (creativesError) {
         console.error("Error fetching creatives:", creativesError);
@@ -129,7 +130,7 @@ const CompetitorDetailPage: React.FC = () => {
         .from("competitor_top_posts")
         .select("*")
         .eq("competitor_id", params.id)
-        .order("competitor_id, likes_count", { ascending: false });
+        .order("posted_at", { ascending: false });
 
       if (topPostsError) {
         console.error("Error fetching top posts:", topPostsError);
@@ -283,9 +284,10 @@ const CompetitorDetailPage: React.FC = () => {
                           </p>
                         </div>
                       ) : (
-                        <p className="text-gray-300 text-sm leading-relaxed">
-                          {paidAdsAnalysis.analysis}
-                        </p>
+                        <AIAnalysisDisplay
+                          analysis={paidAdsAnalysis.analysis}
+                          isLoading={paidAdsAnalysis.loading}
+                        />
                       )}
                     </div>
                   </div>
@@ -421,9 +423,11 @@ const CompetitorDetailPage: React.FC = () => {
                               className="text-sm text-gray-300 cursor-pointer hover:bg-gray-800 rounded-lg p-2 transition-colors"
                               onClick={() => setSelectedAd(ad)}
                             >
-                              <p className="font-medium text-white mb-1">
-                                {ad.ad_title}
-                              </p>
+                              {ad.cta_text && (
+                                <p className="font-medium text-blue-400 mb-1">
+                                  {ad.cta_text}
+                                </p>
+                              )}
                               <p className="text-gray-400 capitalize">
                                 {ad.platform}
                               </p>
@@ -451,6 +455,9 @@ const CompetitorDetailPage: React.FC = () => {
                                   {ad.is_active ? "Active" : "Expired"}
                                 </span>
                               </div>
+                              <p className="font-medium text-white mt-2">
+                                {ad.ad_title}
+                              </p>
                               <div className="text-xs text-blue-400 mt-2 opacity-0 hover:opacity-100 transition-opacity">
                                 Click for full details
                               </div>
@@ -644,9 +651,10 @@ const CompetitorDetailPage: React.FC = () => {
                           </p>
                         </div>
                       ) : (
-                        <p className="text-gray-300 text-sm leading-relaxed">
-                          {organicAnalysis.analysis}
-                        </p>
+                        <AIAnalysisDisplay
+                          analysis={organicAnalysis.analysis}
+                          isLoading={organicAnalysis.loading}
+                        />
                       )}
                     </div>
                   </div>
@@ -1551,10 +1559,12 @@ const CompetitorDetailPage: React.FC = () => {
                   Ad Information
                 </h4>
                 <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Title:</span>
-                    <span className="text-white">{selectedAd.ad_title}</span>
-                  </div>
+                  {selectedAd.cta_text && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">CTA Text:</span>
+                      <span className="text-white">{selectedAd.cta_text}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="text-gray-400">Platform:</span>
                     <span className="text-white capitalize">
@@ -1578,12 +1588,10 @@ const CompetitorDetailPage: React.FC = () => {
                         new Date(selectedAd.start_date).toLocaleDateString()}
                     </span>
                   </div>
-                  {selectedAd.cta_text && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">CTA Text:</span>
-                      <span className="text-white">{selectedAd.cta_text}</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Title:</span>
+                    <span className="text-white">{selectedAd.ad_title}</span>
+                  </div>
                 </div>
               </div>
             </div>
