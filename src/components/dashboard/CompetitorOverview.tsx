@@ -34,7 +34,8 @@ const CompetitorOverview: React.FC = () => {
 
       // Get stats for each competitor
       const competitorsWithStats = await Promise.all(
-        (userCompetitors || []).map(async (uc: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (userCompetitors || []).map(async (uc: any) => {
           const competitor = uc.competitors;
 
           // Get ad count

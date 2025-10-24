@@ -181,7 +181,8 @@ const DashboardCharts: React.FC = () => {
 
       // Fetch competitor activity data (PAID ADS + RECENT POSTS)
       const competitorActivityData = await Promise.all(
-        userCompetitors.map(async (uc: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        userCompetitors.map(async (uc: any) => {
           const { count: adCount } = await supabase
             .from("competitor_ads")
             .select("*", { count: "exact", head: true })
