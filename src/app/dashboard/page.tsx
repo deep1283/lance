@@ -55,8 +55,7 @@ const DashboardPage: React.FC = () => {
       if (userError) throw userError;
 
       const competitorsWithStats = await Promise.all(
-        (userCompetitors || []).map(async (uc: any) => {
-          // eslint-disable-line @typescript-eslint/no-explicit-any
+        (userCompetitors || []).map(async (uc: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
           const competitor = uc.competitors;
 
           const { count: adCount } = await supabase
