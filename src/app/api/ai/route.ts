@@ -108,7 +108,7 @@ export async function POST(req: Request) {
       .select("*")
       .eq("user_id", user.id);
 
-    console.log("🔍 All analyses in database for user:", allAnalyses);
+    // All analyses in database for user
 
     const { data: cached, error: cacheError } = await supabase
       .from("ai_analyses")
@@ -120,48 +120,23 @@ export async function POST(req: Request) {
 
     if (cacheError) console.error("Supabase cache error:", cacheError);
 
-    console.log("🔍 Cache check:", {
-      requestedParams: {
-        competitorId,
-        analysisType,
-        userId: user.id,
-        cacheQueryCompetitorId,
-      },
-      cached: !!cached,
-      cachedData: cached
-        ? {
-            id: cached.id,
-            competitor_id: cached.competitor_id,
-            analysis_type: cached.analysis_type,
-            user_id: cached.user_id,
-            created_at: cached.created_at,
-            content_length: cached.content?.length || 0,
-          }
-        : null,
-      retrieveOnly,
-    });
+    // Cache check completed
 
     const isFresh =
       cached &&
       new Date().getTime() - new Date(cached.created_at).getTime() <
         2 * 24 * 60 * 60 * 1000;
 
-    console.log("🔍 Freshness check:", {
-      isFresh,
-      timeDiff: cached
-        ? new Date().getTime() - new Date(cached.created_at).getTime()
-        : null,
-      twoDaysInMs: 2 * 24 * 60 * 60 * 1000,
-    });
+    // Freshness check completed
 
     if (isFresh) {
-      console.log("✅ Returning cached AI analysis");
+      // Returning cached AI analysis
       return Response.json({ analysis: cached.content });
     }
 
     // If retrieveOnly is true, don't generate new analysis
     if (retrieveOnly) {
-      console.log("⚠️ No fresh analysis available and retrieveOnly=true");
+      // No fresh analysis available and retrieveOnly=true
       return Response.json({
         analysis: "Analysis is being updated. Please check back later.",
       });
@@ -515,14 +490,7 @@ Provide specific insights based on the real data provided.
       expires_at: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
     };
 
-    console.log("💾 Saving analysis to database:", {
-      upsertData,
-      originalParams: {
-        competitorId,
-        analysisType,
-        userId: user.id,
-      },
-    });
+    // Saving analysis to database
 
     const { error: upsertError } = await supabase
       .from("ai_analyses")
@@ -531,7 +499,7 @@ Provide specific insights based on the real data provided.
     if (upsertError) {
       console.error("❌ Cache upsert error:", upsertError);
     } else {
-      console.log("✅ Analysis saved to database successfully");
+      // Analysis saved to database successfully
     }
 
     // 5️⃣ Return the new AI analysis

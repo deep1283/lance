@@ -92,18 +92,8 @@ const DashboardPage: React.FC = () => {
         })
       );
 
-      console.log("All competitors fetched:", competitorsWithStats);
-      console.log("Competitor count:", competitorsWithStats.length);
-      competitorsWithStats.forEach((comp, index) => {
-        console.log(
-          `Competitor ${index + 1}:`,
-          comp.name,
-          "ID:",
-          comp.id,
-          "Ads:",
-          comp.ad_count
-        );
-      });
+      // All competitors fetched successfully
+      // Processing competitor data
       setCompetitors(competitorsWithStats);
     } catch (error) {
       console.error("Error fetching competitors:", error);

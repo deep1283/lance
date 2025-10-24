@@ -60,9 +60,7 @@ async function getAnalysesNeedingRefresh(): Promise<RefreshJob[]> {
  */
 async function refreshAnalysis(job: RefreshJob): Promise<boolean> {
   try {
-    console.log(
-      `🔄 Refreshing analysis: ${job.analysisType} for competitor ${job.competitorId}`
-    );
+    // Refreshing analysis for competitor
 
     // Call the AI API to generate new analysis
     const response = await fetch(
@@ -88,7 +86,7 @@ async function refreshAnalysis(job: RefreshJob): Promise<boolean> {
       return false;
     }
 
-    console.log(`✅ Successfully refreshed analysis: ${job.analysisType}`);
+    // Successfully refreshed analysis
     return true;
   } catch (error) {
     console.error(`Error refreshing analysis:`, error);
@@ -102,13 +100,13 @@ async function refreshAnalysis(job: RefreshJob): Promise<boolean> {
  */
 export async function runBackgroundRefresh(): Promise<void> {
   try {
-    console.log("🔄 Starting background AI analysis refresh...");
+    // Starting background AI analysis refresh
 
     const jobs = await getAnalysesNeedingRefresh();
-    console.log(`Found ${jobs.length} analyses needing refresh`);
+    // Found analyses needing refresh
 
     if (jobs.length === 0) {
-      console.log("✅ No analyses need refresh");
+      // No analyses need refresh
       return;
     }
 
@@ -123,12 +121,12 @@ export async function runBackgroundRefresh(): Promise<void> {
 
       // Wait between batches to respect rate limits
       if (i + batchSize < jobs.length) {
-        console.log("⏳ Waiting 30 seconds before next batch...");
+        // Waiting before next batch
         await new Promise((resolve) => setTimeout(resolve, 30000));
       }
     }
 
-    console.log("✅ Background refresh completed");
+    // Background refresh completed
   } catch (error) {
     console.error("Error in background refresh:", error);
   }
@@ -147,5 +145,5 @@ export function startBackgroundRefreshScheduler(): void {
     runBackgroundRefresh();
   }, 60 * 60 * 1000); // 1 hour
 
-  console.log("🚀 Background AI refresh scheduler started");
+  // Background AI refresh scheduler started
 }

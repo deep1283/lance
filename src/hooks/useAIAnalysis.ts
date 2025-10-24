@@ -37,7 +37,7 @@ async function getAIAnalysis(
   // Check if we already have a recent analysis (less than 2 days old)
   const cached = globalCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < 2 * 24 * 60 * 60 * 1000) {
-    console.log("✅ Returning cached analysis from memory");
+    // Returning cached analysis from memory
     return {
       analysis: cached.analysis,
       error: null,
@@ -46,7 +46,7 @@ async function getAIAnalysis(
 
   // Check if this analysis is already being loaded
   if (globalLoadingStates.has(cacheKey)) {
-    console.log("⏳ Analysis already being loaded, waiting...");
+    // Analysis already being loaded, waiting...
     // Wait for the existing call to complete
     return new Promise((resolve) => {
       const checkInterval = setInterval(() => {

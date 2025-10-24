@@ -103,11 +103,7 @@ const CompetitorDetailPage: React.FC = () => {
         setAds([]);
       } else {
         setAds(adsData || []);
-        console.log("Fetched ads:", adsData);
-        if (adsData && adsData.length > 0) {
-          console.log("First ad image_url:", adsData[0].image_url);
-          console.log("First ad full data:", adsData[0]);
-        }
+        // Ads data fetched successfully
       }
 
       // Fetch competitor creatives (organic social media)
@@ -122,7 +118,7 @@ const CompetitorDetailPage: React.FC = () => {
         setCreatives([]);
       } else {
         setCreatives(creativesData || []);
-        console.log("Fetched creatives:", creativesData);
+        // Creatives data fetched successfully
       }
 
       // Fetch competitor top posts (viral reels)
@@ -137,7 +133,7 @@ const CompetitorDetailPage: React.FC = () => {
         setTopPosts([]);
       } else {
         setTopPosts(topPostsData || []);
-        console.log("Fetched top posts:", topPostsData);
+        // Top posts data fetched successfully
       }
     } catch (error) {
       console.error("Error fetching competitor:", error);
