@@ -32,12 +32,18 @@ const ApprovalPage: React.FC = () => {
             .single();
 
           if (error) {
-            // If error (e.g., table doesn't exist yet), assume not approved
-            // This is expected on first run before running supabase-setup.sql
-            console.warn(
-              "Users table not found or error fetching approval status. Please run supabase-setup.sql"
-            );
-            console.warn("Error details:", error.message || error);
+            // If no user record exists, create one with is_approved = false
+            console.log("No user record found, creating new user record...");
+            const { error: insertError } = await supabase.from("users").insert({
+              id: user.id,
+              email: user.email,
+              is_approved: false,
+              created_at: new Date().toISOString(),
+            });
+
+            if (insertError) {
+              console.error("Error creating user record:", insertError);
+            }
             setIsApproved(false);
           } else if (data?.is_approved === true) {
             // User is approved, redirect to dashboard
