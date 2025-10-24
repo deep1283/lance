@@ -28,20 +28,11 @@ const DashboardCharts: React.FC = () => {
   );
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchChartData();
-  }, []);
-
   const fetchAdTrendData = async (
     competitorIds: string[],
     userCompetitors: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
   ) => {
     try {
-      console.log(
-        "Fetching ad trend data for competitors:",
-        userCompetitors.map((uc) => uc.competitors.name)
-      );
-
       // Fetch all ads for these competitors (no date filter for now)
       const { data: ads, error } = await supabase
         .from("competitor_ads")
@@ -64,19 +55,12 @@ const DashboardCharts: React.FC = () => {
         // Continue without recent posts data
       }
 
-      console.log("Fetched ads:", ads);
-
       // Create date range for last 30 days to capture more ad activity
       const last30Days = Array.from({ length: 30 }, (_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - (29 - i));
         return date;
       });
-
-      console.log(
-        "Last 30 days:",
-        last30Days.map((d) => d.toLocaleDateString())
-      );
 
       // Group ads by competitor and date
       const competitorData: { [key: string]: { [key: string]: number } } = {};
@@ -100,8 +84,6 @@ const DashboardCharts: React.FC = () => {
           day: "numeric",
         });
 
-        console.log(`Ad date: ${ad.start_date} -> formatted: ${dateStr}`);
-
         // Find competitor name
         const competitor = userCompetitors.find(
           (uc) => uc.competitor_id === ad.competitor_id
@@ -112,9 +94,6 @@ const DashboardCharts: React.FC = () => {
             competitorData[competitor.competitors.name][dateStr] || 0;
           competitorData[competitor.competitors.name][dateStr] =
             currentCount + 1;
-          console.log(
-            `Added 1 ad for ${competitor.competitors.name} on ${dateStr}`
-          );
         }
       });
 
@@ -136,9 +115,6 @@ const DashboardCharts: React.FC = () => {
             competitorData[competitor.competitors.name][dateStr] || 0;
           competitorData[competitor.competitors.name][dateStr] =
             currentCount + 1;
-          console.log(
-            `Added 1 recent post for ${competitor.competitors.name} on ${dateStr}`
-          );
         }
       });
 
@@ -158,7 +134,6 @@ const DashboardCharts: React.FC = () => {
         return dataPoint;
       });
 
-      console.log("Final chart data:", chartData);
       return chartData;
     } catch (error) {
       console.error("Error in fetchAdTrendData:", error);
@@ -255,6 +230,10 @@ const DashboardCharts: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchChartData();
+  }, []);
 
   if (loading) {
     return (
