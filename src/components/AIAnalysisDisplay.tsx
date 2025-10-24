@@ -16,7 +16,7 @@ const AIAnalysisDisplay: React.FC<AIAnalysisDisplayProps> = ({
     if (!text) return text;
 
     // Replace common patterns with emojis and better formatting
-    let formatted = text
+    const formatted = text
       // Headers with emojis (remove ** from headers)
       .replace(/### (.*?):/g, "🎯 $1:")
       .replace(/## (.*?):/g, "📊 $1:")

@@ -36,6 +36,7 @@ export interface Ad {
   carousel_images?: string;
   cta_text?: string;
   start_date?: string;
+  end_date?: string;
   is_active: boolean;
   library_id?: string;
   analyzed_at: string;
