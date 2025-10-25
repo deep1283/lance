@@ -47,7 +47,9 @@ const AdminDashboard: React.FC = () => {
       console.log("Number of analyses:", analysesData?.length || 0);
 
       // Get unique user IDs from analyses
-      const userIds = [...new Set(analysesData?.map((a: any) => a.user_id) || [])];
+      const userIds = [
+        ...new Set(analysesData?.map((a: any) => a.user_id) || []),
+      ];
 
       console.log("User IDs from analyses:", userIds);
 

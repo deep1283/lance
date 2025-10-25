@@ -77,7 +77,7 @@ async function getAIAnalysis(
         "Content-Type": "application/json",
         Authorization: `Bearer ${session?.access_token}`,
       },
-      body: JSON.stringify({ competitorId, analysisType, retrieveOnly: true }),
+      body: JSON.stringify({ competitorId, analysisType, retrieveOnly: false }), // Set to false to generate initial analyses
     });
 
     if (!response.ok) {
