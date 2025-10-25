@@ -50,7 +50,7 @@ const Hero: React.FC = () => {
             placeholder="blur"
             fill
             priority
-            quality={75}
+            quality={65}
             sizes="100vw"
             style={{ objectFit: "cover" }}
           />
