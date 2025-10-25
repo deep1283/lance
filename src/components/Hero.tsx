@@ -108,14 +108,8 @@ const Hero: React.FC = () => {
           loop
           muted
           playsInline
-          preload="auto"
+          preload="metadata"
           className="w-full h-full object-cover"
-          onLoadedData={(e) => {
-            const video = e.target as HTMLVideoElement;
-            video.play().catch(() => {
-              // Autoplay might be blocked, that's okay
-            });
-          }}
         />
       </motion.section>
     </>
