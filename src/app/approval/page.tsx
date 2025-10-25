@@ -46,9 +46,9 @@ const ApprovalPage: React.FC = () => {
             }
             setIsApproved(false);
           } else if (data?.is_approved === true) {
-            // User is approved, redirect to dashboard
+            // User is approved, redirect to welcome page first
             setIsApproved(true);
-            router.push("/dashboard");
+            router.push("/welcome");
           } else {
             // User is not approved, stay on this page
             setIsApproved(false);
@@ -74,7 +74,7 @@ const ApprovalPage: React.FC = () => {
   if (authLoading || checking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="text-white text-xl">Preparing dashboard...</div>
       </div>
     );
   }
@@ -83,7 +83,7 @@ const ApprovalPage: React.FC = () => {
   if (isApproved) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="text-white text-xl">Redirecting...</div>
+        <div className="text-white text-xl">Preparing dashboard...</div>
       </div>
     );
   }

@@ -11,10 +11,10 @@ const WelcomePage: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to dashboard after 6 seconds
+    // Redirect to dashboard after 4 seconds
     const redirectTimer = setTimeout(() => {
       router.push("/dashboard");
-    }, 6000);
+    }, 4000);
 
     return () => clearTimeout(redirectTimer);
   }, [router]);
