@@ -60,7 +60,7 @@ const Features: React.FC = () => {
                 className="rounded-3xl shadow-lg"
                 placeholder="blur"
                 priority
-                quality={80}
+                quality={65}
                 sizes="(max-width: 768px) 288px, (max-width: 1024px) 320px, 384px"
               />
             </motion.div>
@@ -92,7 +92,7 @@ const Features: React.FC = () => {
                 alt="SEO analysis dashboard showing keyword insights"
                 className="rounded-3xl shadow-lg"
                 placeholder="blur"
-                quality={80}
+                quality={65}
                 sizes="(max-width: 768px) 288px, (max-width: 1024px) 320px, 384px"
               />
             </motion.div>
@@ -124,7 +124,7 @@ const Features: React.FC = () => {
                 alt="Trend analysis graph with seasonal marketing spikes"
                 className="rounded-3xl shadow-lg"
                 placeholder="blur"
-                quality={80}
+                quality={65}
                 sizes="(max-width: 768px) 288px, (max-width: 1024px) 320px, 384px"
               />
             </motion.div>

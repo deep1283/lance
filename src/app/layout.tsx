@@ -17,7 +17,8 @@ export const metadata: Metadata = {
   title: "LanceIQ – AI-Powered Business Growth",
   description:
     "Discover LanceIQ – an AI-powered intelligence system designed to help your business track competitors, analyze trends, and grow faster.",
-  keywords: "AI business intelligence, competitor tracking, market analysis, business growth, competitive intelligence, trend analysis",
+  keywords:
+    "AI business intelligence, competitor tracking, market analysis, business growth, competitive intelligence, trend analysis",
   authors: [{ name: "LanceIQ" }],
   openGraph: {
     title: "LanceIQ – AI-Powered Business Growth",

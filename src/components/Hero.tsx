@@ -51,9 +51,10 @@ const Hero: React.FC = () => {
             placeholder="blur"
             fill
             priority
-            quality={75}
+            quality={60}
             sizes="100vw"
             style={{ objectFit: "cover" }}
+            loading="eager"
           />
           <div className="absolute inset-0 bg-black/50" />
         </div>
@@ -98,6 +99,7 @@ const Hero: React.FC = () => {
         className="w-full h-[100vh] sm:h-screen overflow-hidden"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
+        viewport={{ once: true, margin: "200px" }}
         transition={{ duration: 1.5 }}
       >
         <video
@@ -106,8 +108,14 @@ const Hero: React.FC = () => {
           loop
           muted
           playsInline
-          preload="metadata"
+          preload="auto"
           className="w-full h-full object-cover"
+          onLoadedData={(e) => {
+            const video = e.target as HTMLVideoElement;
+            video.play().catch(() => {
+              // Autoplay might be blocked, that's okay
+            });
+          }}
         />
       </motion.section>
     </>
