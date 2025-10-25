@@ -39,7 +39,6 @@ const Hero: React.FC = () => {
         />
         <meta property="og:type" content="website" />
         <link rel="preload" as="image" href={bgimage.src} />
-        <link rel="preload" as="video" href={lancevideo} />
       </Head>
 
       {/* Hero Section */}
@@ -51,10 +50,9 @@ const Hero: React.FC = () => {
             placeholder="blur"
             fill
             priority
-            quality={60}
+            quality={75}
             sizes="100vw"
             style={{ objectFit: "cover" }}
-            loading="eager"
           />
           <div className="absolute inset-0 bg-black/50" />
         </div>
