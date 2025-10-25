@@ -59,6 +59,7 @@ const Features: React.FC = () => {
                 alt="Creative insights feature showing competitor ads and trends"
                 className="rounded-3xl shadow-lg"
                 placeholder="blur"
+                priority
                 quality={65}
                 sizes="(max-width: 768px) 288px, (max-width: 1024px) 320px, 384px"
               />

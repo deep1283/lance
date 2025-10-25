@@ -39,6 +39,7 @@ const Hero: React.FC = () => {
         />
         <meta property="og:type" content="website" />
         <link rel="preload" as="image" href={bgimage.src} />
+        <link rel="preload" as="video" href={lancevideo} />
       </Head>
 
       {/* Hero Section */}
