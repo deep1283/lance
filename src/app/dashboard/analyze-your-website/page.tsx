@@ -42,7 +42,7 @@ const AnalyzeYourWebsitePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <DashboardSidebar />
-      <div className="ml-16 lg:ml-16 transition-all duration-300 pt-16 lg:pt-0">
+      <div className="lg:ml-16 transition-all duration-300 pt-16 lg:pt-0">
         <DashboardHeader />
         <main className="p-4 sm:p-6">
           <div className="max-w-4xl mx-auto">

@@ -17,9 +17,6 @@ const DashboardHeader: React.FC = () => {
           <h1 className="text-lg sm:text-xl font-semibold text-white">
             Dashboard
           </h1>
-          <div className="text-xs sm:text-sm text-gray-400">
-            Last synced: {new Date().toLocaleTimeString()}
-          </div>
         </div>
 
         <div className="flex items-center space-x-3 sm:space-x-4 w-full sm:w-auto justify-between sm:justify-end">
