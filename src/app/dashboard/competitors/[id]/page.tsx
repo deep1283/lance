@@ -845,7 +845,9 @@ const CompetitorDetailPage: React.FC = () => {
                                 </p>
                               )}
                               <div className="flex justify-between text-xs text-gray-500">
-                                <span>{creative.likes_count || 0} likes</span>
+                                {(creative.likes_count ?? 0) > 0 && (
+                                  <span>{creative.likes_count} likes</span>
+                                )}
                                 {creative.post_type === "reel" && (
                                   <span>{creative.views_count || 0} views</span>
                                 )}
@@ -975,7 +977,9 @@ const CompetitorDetailPage: React.FC = () => {
                                 </p>
                               )}
                               <div className="flex justify-between text-xs text-gray-500">
-                                <span>{post.likes_count || 0} likes</span>
+                                {(post.likes_count ?? 0) > 0 && (
+                                  <span>{post.likes_count} likes</span>
+                                )}
                                 {post.post_type === "reel" && (
                                   <span>{post.views_count || 0} views</span>
                                 )}
@@ -1458,13 +1462,21 @@ const CompetitorDetailPage: React.FC = () => {
                 <h4 className="text-lg font-semibold text-white mb-3">
                   Engagement Metrics
                 </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-800 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-bold text-red-400">
-                      {selectedCreative.likes_count || 0}
+                <div
+                  className={`grid gap-4 ${
+                    (selectedCreative.likes_count ?? 0) > 0
+                      ? "grid-cols-2"
+                      : "grid-cols-1"
+                  }`}
+                >
+                  {(selectedCreative.likes_count ?? 0) > 0 && (
+                    <div className="bg-gray-800 rounded-lg p-3 text-center">
+                      <div className="text-2xl font-bold text-red-400">
+                        {selectedCreative.likes_count}
+                      </div>
+                      <div className="text-sm text-gray-400">Likes</div>
                     </div>
-                    <div className="text-sm text-gray-400">Likes</div>
-                  </div>
+                  )}
 
                   <div className="bg-gray-800 rounded-lg p-3 text-center">
                     <div className="text-2xl font-bold text-green-400">
