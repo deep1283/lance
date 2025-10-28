@@ -5,13 +5,13 @@
 ALTER TABLE public.competitor_ads 
 ADD COLUMN media_url TEXT;
 
--- 2) Backfill existing data based on ad_type
+-- 2) Backfill existing data based on which URL columns have data
 UPDATE public.competitor_ads 
 SET media_url = CASE 
-  WHEN ad_type = 'video' AND video_url IS NOT NULL THEN video_url
-  WHEN ad_type = 'image' AND image_url IS NOT NULL THEN image_url
-  WHEN ad_type = 'carousel' AND carousel_images IS NOT NULL AND carousel_images != '' THEN 
+  WHEN video_url IS NOT NULL AND video_url != '' THEN video_url
+  WHEN carousel_images IS NOT NULL AND carousel_images != '' THEN 
     (SELECT string_agg(img->>'url', ',') FROM jsonb_array_elements(carousel_images::jsonb) AS img)
+  WHEN image_url IS NOT NULL AND image_url != '' THEN image_url
   ELSE 'https://via.placeholder.com/400x400?text=No+Media' -- fallback for missing media
 END;
 

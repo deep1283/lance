@@ -29,14 +29,15 @@ import {
 const getMediaInfo = (item: any) => {
   if (!item.media_url) return null;
 
-  // Check if it's a video (reel)
-  if (item.post_type === "reel" || item.ad_type === "video") {
+  // Check if it's a video (reel or video ad)
+  if (item.post_type === "reel" || item.ad_type === "video" || item.media_url.includes("video")) {
     return { type: "video", url: item.media_url };
   }
 
   // Check if it's a carousel (comma-separated URLs)
   if (
     item.post_type === "carousel" ||
+    item.ad_type === "carousel" ||
     (item.media_url.includes(",") && !item.media_url.includes("video"))
   ) {
     return {
