@@ -9,8 +9,7 @@ ADD COLUMN media_url TEXT;
 UPDATE public.competitor_ads 
 SET media_url = CASE 
   WHEN video_url IS NOT NULL AND video_url != '' THEN video_url
-  WHEN carousel_images IS NOT NULL AND carousel_images != '' THEN 
-    (SELECT string_agg(img->>'url', ',') FROM jsonb_array_elements(carousel_images::jsonb) AS img)
+  WHEN carousel_images IS NOT NULL AND carousel_images != '' THEN carousel_images
   WHEN image_url IS NOT NULL AND image_url != '' THEN image_url
   ELSE 'https://via.placeholder.com/400x400?text=No+Media' -- fallback for missing media
 END;
