@@ -25,11 +25,13 @@ const StrategyLabPage: React.FC = () => {
       if (!user || activeTab !== "competitors") return;
       setLoadingTab(true);
       try {
-        const { data: row } = await supabase
+        // Get the most recent record that has actual data (non-empty arrays)
+        const { data: row, error } = await supabase
           .from("strategy_competitors")
           .select("*")
           .eq("user_id", user.id)
-          .order("start_date", { ascending: false })
+          .not("top_hashtags", "eq", "[]")
+          .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
 
@@ -37,6 +39,7 @@ const StrategyLabPage: React.FC = () => {
 
         // Fetch live metrics for top creatives if present
         const postIds = (row?.top_creatives || []).map((c: any) => c.post_id);
+        
         if (postIds.length > 0) {
           const { data: posts } = await supabase
             .from("competitor_creatives")
@@ -195,21 +198,21 @@ const StrategyLabPage: React.FC = () => {
                                         preload="metadata"
                                         muted
                                       />
-                                     ) : post.post_type === "carousel" ? (
-                                       <div className="w-full h-48 rounded mb-3 overflow-hidden">
-                                         <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
-                                           {post.media_url
-                                             .split(",")
-                                             .map((url: string, idx: number) => (
-                                               <img
-                                                 key={idx}
-                                                 src={url.trim()}
-                                                 className="flex-shrink-0 w-32 h-48 object-cover rounded"
-                                                 alt={`carousel ${idx + 1}`}
-                                               />
-                                             ))}
-                                         </div>
-                                       </div>
+                                    ) : post.post_type === "carousel" ? (
+                                      <div className="w-full h-48 rounded mb-3 overflow-hidden">
+                                        <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
+                                          {post.media_url
+                                            .split(",")
+                                            .map((url: string, idx: number) => (
+                                              <img
+                                                key={idx}
+                                                src={url.trim()}
+                                                className="flex-shrink-0 w-32 h-48 object-cover rounded"
+                                                alt={`carousel ${idx + 1}`}
+                                              />
+                                            ))}
+                                        </div>
+                                      </div>
                                     ) : (
                                       <img
                                         src={post.media_url}

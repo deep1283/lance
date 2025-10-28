@@ -12,10 +12,16 @@ interface UserAnalysis {
   daysOld: number;
 }
 
+interface User {
+  id: string;
+  email: string;
+}
+
 const AdminDashboard: React.FC = () => {
   const [token, setToken] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
   const [users, setUsers] = useState<UserAnalysis[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState<string | null>(null);
   const [strategyRefreshing, setStrategyRefreshing] = useState<string | null>(
@@ -28,8 +34,29 @@ const AdminDashboard: React.FC = () => {
     if (token === validToken) {
       setAuthenticated(true);
       fetchUsers();
+      fetchAllUsers();
     } else {
       alert("Invalid token");
+    }
+  };
+
+  // Fetch all users for Strategy Lab section
+  const fetchAllUsers = async () => {
+    try {
+      const response = await fetch("/api/admin/users", {
+        headers: {
+          Authorization: `Bearer ${
+            process.env.NEXT_PUBLIC_ADMIN_SECRET || "admin-secret"
+          }`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch users");
+      }
+      const data = await response.json();
+      setAllUsers(data.users || []);
+    } catch (err) {
+      console.error("Error fetching all users:", err);
     }
   };
 
@@ -46,15 +73,25 @@ const AdminDashboard: React.FC = () => {
 
       const analysesData = data.analyses;
 
-      console.log("Full analyses data:", analysesData);
-      console.log("Number of analyses:", analysesData?.length || 0);
-
       // Get unique user IDs from analyses
       const userIds = [
         ...new Set(analysesData?.map((a: any) => a.user_id) || []),
       ];
 
-      console.log("User IDs from analyses:", userIds);
+      // Fetch user emails
+      const { data: userEmails, error: emailError } = await supabase
+        .from("users")
+        .select("id, email")
+        .in("id", userIds);
+
+      if (emailError) {
+        // Handle email fetch error silently
+      }
+
+      const emailMap = new Map<string, string>();
+      userEmails?.forEach((user) => {
+        emailMap.set(user.id, user.email);
+      });
 
       const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000;
 
@@ -75,7 +112,7 @@ const AdminDashboard: React.FC = () => {
           ) {
             userMap.set(key, {
               userId: analysis.user_id,
-              email: analysis.user_id,
+              email: emailMap.get(analysis.user_id) || analysis.user_id,
               competitorId: analysis.competitor_id,
               analysisType: analysis.analysis_type,
               lastRefreshed: analysis.created_at,
@@ -85,12 +122,6 @@ const AdminDashboard: React.FC = () => {
         }
       }
 
-      // If no analyses exist, show message
-      if (userMap.size === 0) {
-        console.log("No analyses found in database");
-      }
-
-      console.log("Users map:", Array.from(userMap.values()));
       setUsers(Array.from(userMap.values()));
     } catch (err) {
       console.error("Error fetching users:", err);
@@ -153,7 +184,6 @@ const AdminDashboard: React.FC = () => {
 
       alert("Strategy insights generated successfully!");
     } catch (error) {
-      console.error("Strategy refresh error:", error);
       alert("Failed to refresh strategy: " + (error as Error).message);
     } finally {
       setStrategyRefreshing(null);
@@ -197,27 +227,36 @@ const AdminDashboard: React.FC = () => {
           the last 10 days.
         </p>
         <div className="space-y-3">
-          {Array.from(new Set(users.map((u) => u.userId))).map((uid) => (
-            <div
-              key={uid}
-              className="flex items-center justify-between p-3 bg-gray-700 rounded-lg"
-            >
-              <div>
-                <span className="text-white font-medium">
-                  {uid.slice(0, 8)}...
-                </span>
-              </div>
-              <button
-                onClick={() => handleStrategyRefresh(uid)}
-                disabled={strategyRefreshing === uid}
-                className="px-4 py-2 bg-yellow-600 rounded hover:bg-yellow-700 disabled:opacity-50 text-white font-medium"
-              >
-                {strategyRefreshing === uid
-                  ? "Generating..."
-                  : "Generate Strategy"}
-              </button>
+          {allUsers.length === 0 ? (
+            <div className="text-center py-4">
+              <p className="text-gray-400">Loading users...</p>
             </div>
-          ))}
+          ) : (
+            allUsers.map((user) => (
+              <div
+                key={user.id}
+                className="flex items-center justify-between p-4 bg-gray-700 rounded-lg"
+              >
+                <div className="flex-1">
+                  <div className="text-white font-medium text-sm">
+                    {user.email}
+                  </div>
+                  <div className="text-gray-400 text-xs font-mono">
+                    {user.id}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleStrategyRefresh(user.id)}
+                  disabled={strategyRefreshing === user.id}
+                  className="px-4 py-2 bg-yellow-600 rounded hover:bg-yellow-700 disabled:opacity-50 text-white font-medium text-sm"
+                >
+                  {strategyRefreshing === user.id
+                    ? "Generating..."
+                    : "Generate Strategy"}
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
@@ -252,6 +291,9 @@ const AdminDashboard: React.FC = () => {
             <table className="w-full border border-gray-700">
               <thead>
                 <tr className="bg-gray-800">
+                  <th className="px-4 py-2 border border-gray-700">
+                    User Email
+                  </th>
                   <th className="px-4 py-2 border border-gray-700">User ID</th>
                   <th className="px-4 py-2 border border-gray-700">
                     Competitor ID
@@ -272,19 +314,22 @@ const AdminDashboard: React.FC = () => {
                     key={index}
                     className={user.daysOld > 2 ? "bg-red-900/20" : ""}
                   >
-                    <td className="px-4 py-2 border border-gray-700">
-                      {user.userId.slice(0, 8)}...
+                    <td className="px-4 py-2 border border-gray-700 text-sm">
+                      {user.email}
                     </td>
-                    <td className="px-4 py-2 border border-gray-700">
+                    <td className="px-4 py-2 border border-gray-700 text-xs font-mono">
+                      {user.userId}
+                    </td>
+                    <td className="px-4 py-2 border border-gray-700 text-xs font-mono">
                       {user.competitorId}
                     </td>
-                    <td className="px-4 py-2 border border-gray-700">
+                    <td className="px-4 py-2 border border-gray-700 text-sm">
                       {user.analysisType}
                     </td>
-                    <td className="px-4 py-2 border border-gray-700">
+                    <td className="px-4 py-2 border border-gray-700 text-sm">
                       {new Date(user.lastRefreshed).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-2 border border-gray-700">
+                    <td className="px-4 py-2 border border-gray-700 text-sm">
                       {user.daysOld}
                     </td>
                     <td className="px-4 py-2 border border-gray-700">
@@ -299,7 +344,7 @@ const AdminDashboard: React.FC = () => {
                         disabled={
                           refreshing === `${user.userId}-${user.analysisType}`
                         }
-                        className="px-3 py-1 bg-violet-600 rounded hover:bg-violet-700 disabled:opacity-50"
+                        className="px-3 py-1 bg-violet-600 rounded hover:bg-violet-700 disabled:opacity-50 text-sm"
                       >
                         {refreshing === `${user.userId}-${user.analysisType}`
                           ? "Refreshing..."

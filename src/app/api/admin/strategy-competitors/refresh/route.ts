@@ -117,14 +117,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing userId" }, { status: 400 });
     }
 
-    // Determine 10-day window
-    const start = startDate ? new Date(startDate) : new Date();
-    // normalize start to UTC date without time
-    const startUTC = new Date(
-      Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())
+    // Determine 10-day window - look at the LAST 10 days, not next 10 days
+    const end = startDate ? new Date(startDate) : new Date();
+
+    // normalize end to UTC date without time
+    const endUTC = new Date(
+      Date.UTC(end.getFullYear(), end.getMonth(), end.getDate())
     );
-    const endUTC = new Date(startUTC);
-    endUTC.setDate(endUTC.getDate() + 10);
+    const startUTC = new Date(endUTC);
+    startUTC.setDate(startUTC.getDate() - 10);
 
     // Get user's competitors
     const { data: userCompetitors, error: ucError } = await supabase
@@ -136,6 +137,7 @@ export async function POST(req: Request) {
     }
 
     const competitorIds = (userCompetitors || []).map((uc) => uc.competitor_id);
+
     if (competitorIds.length === 0) {
       return NextResponse.json(
         { error: "No competitors for user" },
