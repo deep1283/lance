@@ -211,13 +211,11 @@ const CompetitorDetailPage: React.FC = () => {
       if (adsResult.status === "fulfilled") {
         const { data: adsData, error: adsError } = adsResult.value;
         if (adsError) {
-          console.error("Error fetching ads:", adsError);
           setAds([]);
         } else {
           setAds(adsData || []);
         }
       } else {
-        console.error("Ads fetch failed:", adsResult.reason);
         setAds([]);
       }
       setAdsLoading(false);
@@ -227,13 +225,11 @@ const CompetitorDetailPage: React.FC = () => {
         const { data: creativesData, error: creativesError } =
           creativesResult.value;
         if (creativesError) {
-          console.error("Error fetching creatives:", creativesError);
           setCreatives([]);
         } else {
           setCreatives(creativesData || []);
         }
       } else {
-        console.error("Creatives fetch failed:", creativesResult.reason);
         setCreatives([]);
       }
       setCreativesLoading(false);
@@ -243,18 +239,15 @@ const CompetitorDetailPage: React.FC = () => {
         const { data: topPostsData, error: topPostsError } =
           topPostsResult.value;
         if (topPostsError) {
-          console.error("Error fetching top posts:", topPostsError);
           setTopPosts([]);
         } else {
           setTopPosts(topPostsData || []);
         }
       } else {
-        console.error("Top posts fetch failed:", topPostsResult.reason);
         setTopPosts([]);
       }
       setTopPostsLoading(false);
     } catch (error) {
-      console.error("Error fetching competitor:", error);
       router.push("/dashboard");
     } finally {
       setLoadingData(false);
