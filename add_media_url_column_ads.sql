@@ -27,9 +27,8 @@ ON public.competitor_ads(media_url);
 
 -- 6) Verify the data
 SELECT 
-  ad_type,
+  'all_ads' as ad_type,
   COUNT(*) as total,
   COUNT(media_url) as with_media_url,
   COUNT(*) - COUNT(media_url) as missing_media_url
-FROM public.competitor_ads 
-GROUP BY ad_type;
+FROM public.competitor_ads;
