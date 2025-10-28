@@ -19,6 +19,10 @@ const StrategyLabPage: React.FC = () => {
   const [insights, setInsights] = useState<any | null>(null);
   const [creativeDetails, setCreativeDetails] = useState<any[]>([]);
 
+  // Modal state for creative details
+  const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   // Load competitor insights for current user (latest window)
   React.useEffect(() => {
     const loadData = async () => {
@@ -117,11 +121,6 @@ const StrategyLabPage: React.FC = () => {
                       <h2 className="text-lg font-semibold text-white">
                         Competitors
                       </h2>
-                      {insights && (
-                        <div className="text-xs text-gray-400">
-                          Window: {insights.start_date} → {insights.end_date}
-                        </div>
-                      )}
                     </div>
 
                     {loadingTab ? (
@@ -188,16 +187,33 @@ const StrategyLabPage: React.FC = () => {
                               {creativeDetails.slice(0, 5).map((post: any) => (
                                 <div
                                   key={post.id}
-                                  className="bg-gray-800 rounded-lg p-4 border border-gray-700"
+                                  className="bg-gray-800 rounded-lg p-4 border border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors"
+                                  onClick={() => {
+                                    setSelectedCreative(post);
+                                    setIsModalOpen(true);
+                                  }}
                                 >
                                   {post.media_url &&
                                     (post.post_type === "reel" ? (
-                                      <video
-                                        src={post.media_url}
-                                        className="w-full h-48 object-cover rounded mb-3"
-                                        preload="metadata"
-                                        muted
-                                      />
+                                      <div className="relative">
+                                        <video
+                                          src={post.media_url}
+                                          className="w-full h-48 object-cover rounded mb-3"
+                                          preload="metadata"
+                                          muted
+                                        />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                          <div className="bg-black bg-opacity-50 rounded-full p-3">
+                                            <svg
+                                              className="w-8 h-8 text-white"
+                                              fill="currentColor"
+                                              viewBox="0 0 24 24"
+                                            >
+                                              <path d="M8 5v14l11-7z" />
+                                            </svg>
+                                          </div>
+                                        </div>
+                                      </div>
                                     ) : post.post_type === "carousel" ? (
                                       <div className="w-full h-48 rounded mb-3 overflow-hidden">
                                         <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
@@ -321,6 +337,141 @@ const StrategyLabPage: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* Creative Modal */}
+      {isModalOpen && selectedCreative && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-xl font-semibold text-white">
+                  Creative Details
+                </h3>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Media Display */}
+                <div className="flex justify-center">
+                  {selectedCreative.post_type === "reel" ? (
+                    <video
+                      src={selectedCreative.media_url}
+                      className="max-w-full max-h-96 rounded-lg"
+                      controls
+                      autoPlay
+                    />
+                  ) : selectedCreative.post_type === "carousel" ? (
+                    <div className="max-w-full">
+                      <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
+                        {selectedCreative.media_url
+                          .split(",")
+                          .map((url: string, idx: number) => (
+                            <img
+                              key={idx}
+                              src={url.trim()}
+                              className="flex-shrink-0 w-64 h-64 object-cover rounded-lg"
+                              alt={`carousel ${idx + 1}`}
+                            />
+                          ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <img
+                      src={selectedCreative.media_url}
+                      className="max-w-full max-h-96 object-cover rounded-lg"
+                      alt="creative"
+                    />
+                  )}
+                </div>
+
+                {/* Caption */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-300 mb-2">
+                    Caption
+                  </h4>
+                  <p className="text-gray-300 text-sm whitespace-pre-wrap">
+                    {selectedCreative.caption || "No caption available"}
+                  </p>
+                </div>
+
+                {/* Engagement Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-gray-700 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-bold text-red-400">
+                      {selectedCreative.likes_count || 0}
+                    </div>
+                    <div className="text-xs text-gray-400">Likes</div>
+                  </div>
+                  {selectedCreative.post_type === "reel" && (
+                    <div className="bg-gray-700 rounded-lg p-3 text-center">
+                      <div className="text-2xl font-bold text-blue-400">
+                        {selectedCreative.views_count || 0}
+                      </div>
+                      <div className="text-xs text-gray-400">Views</div>
+                    </div>
+                  )}
+                  <div className="bg-gray-700 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-bold text-green-400">
+                      {selectedCreative.comments_count || 0}
+                    </div>
+                    <div className="text-xs text-gray-400">Comments</div>
+                  </div>
+                  <div className="bg-gray-700 rounded-lg p-3 text-center">
+                    <div className="text-2xl font-bold text-purple-400">
+                      {selectedCreative.post_type === "reel"
+                        ? (selectedCreative.likes_count || 0) +
+                          (selectedCreative.views_count || 0) +
+                          (selectedCreative.comments_count || 0)
+                        : (selectedCreative.likes_count || 0) +
+                          (selectedCreative.comments_count || 0)}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      Total Engagement
+                    </div>
+                  </div>
+                </div>
+
+                {/* Post Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-400">Type:</span>
+                    <span className="ml-2 text-white capitalize">
+                      {selectedCreative.post_type}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Posted:</span>
+                    <span className="ml-2 text-white">
+                      {selectedCreative.posted_at
+                        ? new Date(
+                            selectedCreative.posted_at
+                          ).toLocaleDateString()
+                        : "Unknown"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
