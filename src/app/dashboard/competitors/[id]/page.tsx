@@ -32,7 +32,6 @@ const getMediaInfo = (item: any) => {
   // Check if it's a video (reel or video ad)
   if (
     item.post_type === "reel" ||
-    item.ad_type === "video" ||
     item.media_url.includes("video") ||
     item.media_url.includes(".mp4") ||
     item.media_url.includes(".mov") ||
@@ -44,7 +43,6 @@ const getMediaInfo = (item: any) => {
   // Check if it's a carousel (comma-separated URLs)
   if (
     item.post_type === "carousel" ||
-    item.ad_type === "carousel" ||
     (item.media_url.includes(",") && !item.media_url.includes("video"))
   ) {
     return {

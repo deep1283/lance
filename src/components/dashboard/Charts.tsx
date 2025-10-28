@@ -176,7 +176,7 @@ const DashboardCharts: React.FC = () => {
       // Fetch Video vs Image distribution (PAID ADS + RECENT POSTS)
       const { data: ads } = await supabase
         .from("competitor_ads")
-        .select("media_url, ad_type")
+        .select("media_url")
         .in("competitor_id", competitorIds);
 
       const { data: recentPosts } = await supabase
@@ -189,10 +189,7 @@ const DashboardCharts: React.FC = () => {
       let imageCount = 0;
 
       ads?.forEach((ad) => {
-        if (
-          ad.ad_type === "video" ||
-          (ad.media_url && ad.media_url.includes("video"))
-        ) {
+        if (ad.media_url && ad.media_url.includes("video")) {
           videoCount++;
         } else if (ad.media_url && !ad.media_url.includes(",")) {
           imageCount++;
