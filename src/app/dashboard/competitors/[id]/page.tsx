@@ -28,38 +28,23 @@ import {
 // Helper function to get media info from media_url
 const getMediaInfo = (item: any) => {
   // Debug logging
-  console.log('getMediaInfo item:', {
+  console.log("getMediaInfo item:", {
     id: item.id,
     media_url: item.media_url,
-    image_url: item.image_url,
-    video_url: item.video_url,
-    carousel_images: item.carousel_images,
     post_type: item.post_type,
-    ad_type: item.ad_type
+    ad_type: item.ad_type,
   });
-  
-  // Fallback to old columns if media_url is not available
-  if (!item.media_url) {
-    if (item.video_url) {
-      return { type: "video", url: item.video_url };
-    }
-    if (item.carousel_images) {
-      return {
-        type: "carousel",
-        urls: item.carousel_images.split(",").map((url: string) => url.trim()),
-      };
-    }
-    if (item.image_url) {
-      return { type: "image", url: item.image_url };
-    }
-    return null;
-  }
+
+  if (!item.media_url) return null;
 
   // Check if it's a video (reel or video ad)
   if (
     item.post_type === "reel" ||
     item.ad_type === "video" ||
-    item.media_url.includes("video")
+    item.media_url.includes("video") ||
+    item.media_url.includes(".mp4") ||
+    item.media_url.includes(".mov") ||
+    item.media_url.includes(".avi")
   ) {
     return { type: "video", url: item.media_url };
   }
