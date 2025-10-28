@@ -34,9 +34,9 @@ async function getAIAnalysis(
 ): Promise<{ analysis: string; error: string | null }> {
   const cacheKey = `${competitorId}-${analysisType}`;
 
-  // Check if we already have a recent analysis (less than 2 days old)
+  // Check if we already have a cached analysis
   const cached = globalCache.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < 2 * 24 * 60 * 60 * 1000) {
+  if (cached) {
     // Returning cached analysis from memory
     return {
       analysis: cached.analysis,

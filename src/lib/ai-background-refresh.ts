@@ -25,27 +25,9 @@ interface RefreshJob {
  * Get all analyses that need refresh
  */
 async function getAnalysesNeedingRefresh(): Promise<RefreshJob[]> {
-  const { data: analyses, error } = await supabase
-    .from("ai_analyses")
-    .select("competitor_id, user_id, analysis_type, created_at")
-    .lt(
-      "created_at",
-      new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-    );
-
-  if (error) {
-    console.error("Error fetching analyses needing refresh:", error);
-    return [];
-  }
-
-  return (
-    analyses?.map((analysis) => ({
-      competitorId: analysis.competitor_id,
-      userId: analysis.user_id,
-      analysisType: analysis.analysis_type,
-      lastRefreshed: analysis.created_at,
-    })) || []
-  );
+  // Since we removed the 2-day expiration, this function now returns empty array
+  // Analyses will only be refreshed manually from the admin panel
+  return [];
 }
 
 /**

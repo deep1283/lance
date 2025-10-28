@@ -122,10 +122,7 @@ export async function POST(req: Request) {
 
     // Cache check completed
 
-    const isFresh =
-      cached &&
-      new Date().getTime() - new Date(cached.created_at).getTime() <
-        2 * 24 * 60 * 60 * 1000;
+    const isFresh = cached;
 
     // Freshness check completed
 
