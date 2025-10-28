@@ -290,6 +290,37 @@ const DashboardSidebar: React.FC = () => {
             <span className="text-sm font-medium">Analyze Website</span>
           )}
         </Link>
+
+        {/* Strategy Lab */}
+        <Link
+          href="/dashboard/strategy-lab"
+          onClick={() => setIsMobileMenuOpen(false)}
+          className={`flex items-center space-x-3 px-3 py-2.5 rounded-md transition-all duration-200 group ${
+            isActive("/dashboard/strategy-lab")
+              ? "bg-violet-600/10 text-violet-400 border-l-2 border-violet-500"
+              : "text-gray-400 hover:bg-[#1a1a1a] hover:text-gray-200"
+          }`}
+          title={
+            !(isExpanded || isMobileMenuOpen || isMobile) ? "Strategy Lab" : ""
+          }
+        >
+          <svg
+            className="w-5 h-5 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12h6m-6 4h6M9 8h6m-9 9a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H6z"
+            />
+          </svg>
+          {(isExpanded || isMobileMenuOpen || isMobile) && (
+            <span className="text-sm font-medium">Strategy Lab</span>
+          )}
+        </Link>
       </nav>
     </>
   );
