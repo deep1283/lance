@@ -65,6 +65,45 @@ const ApprovalPage: React.FC = () => {
     checkApprovalStatus();
   }, [user, authLoading, router]);
 
+  // Subscribe to approval status changes and auto-redirect when approved
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`user-approval-watch-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "users",
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          const approved = (
+            payload as unknown as { new?: { is_approved?: boolean } }
+          ).new?.is_approved;
+          if (approved === true) {
+            setIsApproved(true);
+            // Hard navigation for mobile reliability
+            try {
+              router.replace("/welcome");
+            } catch (_) {}
+            if (typeof window !== "undefined") {
+              window.location.replace("/welcome");
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      try {
+        supabase.removeChannel(channel);
+      } catch (_) {}
+    };
+  }, [user, router]);
+
   const handleLogout = async () => {
     await signOut();
     router.push("/");
