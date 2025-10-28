@@ -20,7 +20,6 @@ interface RefreshJob {
   lastRefreshed: string;
 }
 
-
 /**
  * Get all analyses that need refresh
  */

@@ -265,7 +265,7 @@ ANALYSIS APPROACH:
 
       systemPrompt =
         "You are an expert online marketer specializing in jewelry advertising. Analyze paid ad strategies with actionable insights.";
- 
+
       if (!ads || ads.length === 0) {
         return Response.json({
           analysis: `No paid ads running currently for ${

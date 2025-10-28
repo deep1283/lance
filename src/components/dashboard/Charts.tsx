@@ -310,7 +310,7 @@ const DashboardCharts: React.FC = () => {
       {/* Ad Trend Over Time */}
       <div className="bg-gray-800 rounded-lg p-6 lg:col-span-2 xl:col-span-1">
         <h3 className="text-lg font-semibold text-white mb-4">
-          Ad Trend Over Time
+          Content Trend Over Time
         </h3>
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={adTrends}>
