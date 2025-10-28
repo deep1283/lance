@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import DashboardSidebar from "@/components/dashboard/Sidebar";
 import DashboardHeader from "@/components/dashboard/Header";
+import { supabase } from "@/lib/supabase";
 
 const AnalyzeYourWebsitePage: React.FC = () => {
   const { user, loading } = useAuth();
@@ -17,6 +18,59 @@ const AnalyzeYourWebsitePage: React.FC = () => {
       router.push("/login");
     }
   }, [user, loading, router]);
+
+  // Guard: redirect to approval if access revoked while logged in
+  React.useEffect(() => {
+    if (!user) return;
+    let isActive = true;
+
+    const checkApproval = async () => {
+      try {
+        const { data } = await supabase
+          .from("users")
+          .select("is_approved")
+          .eq("id", user.id)
+          .single();
+        if (isActive && data && data.is_approved === false) {
+          if (typeof window !== "undefined") {
+            window.location.replace("/approval");
+          }
+        }
+      } catch (_) {}
+    };
+
+    checkApproval();
+
+    const channel = supabase
+      .channel(`user-approval-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "users",
+          filter: `id=eq.${user.id}`,
+        },
+        (payload: any) => {
+          const nextApproved = (
+            payload as unknown as { new?: { is_approved?: boolean } }
+          ).new?.is_approved;
+          if (nextApproved === false) {
+            if (typeof window !== "undefined") {
+              window.location.replace("/approval");
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      isActive = false;
+      try {
+        supabase.removeChannel(channel);
+      } catch (_) {}
+    };
+  }, [user]);
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();

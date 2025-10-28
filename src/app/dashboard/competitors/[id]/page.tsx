@@ -64,6 +64,59 @@ const CompetitorDetailPage: React.FC = () => {
     }
   }, [user, loading, router]);
 
+  // Guard: redirect to approval if access revoked while logged in
+  useEffect(() => {
+    if (!user) return;
+    let isActive = true;
+
+    const checkApproval = async () => {
+      try {
+        const { data } = await supabase
+          .from("users")
+          .select("is_approved")
+          .eq("id", user.id)
+          .single();
+        if (isActive && data && data.is_approved === false) {
+          if (typeof window !== "undefined") {
+            window.location.replace("/approval");
+          }
+        }
+      } catch (_) {}
+    };
+
+    checkApproval();
+
+    const channel = supabase
+      .channel(`user-approval-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "users",
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          const nextApproved = (
+            payload as unknown as { new?: { is_approved?: boolean } }
+          ).new?.is_approved;
+          if (nextApproved === false) {
+            if (typeof window !== "undefined") {
+              window.location.replace("/approval");
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      isActive = false;
+      try {
+        supabase.removeChannel(channel);
+      } catch (_) {}
+    };
+  }, [user]);
+
   useEffect(() => {
     if (user && params.id) {
       fetchCompetitorData();

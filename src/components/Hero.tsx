@@ -103,10 +103,10 @@ const Hero: React.FC = () => {
       >
         <video
           src={lancevideo}
-          muted
-          playsInline
           autoPlay
           loop
+          muted
+          playsInline
           preload="metadata"
           className="w-full h-full object-cover"
         />

@@ -48,10 +48,7 @@ const ApprovalPage: React.FC = () => {
           } else if (data?.is_approved === true) {
             // User is approved, redirect to welcome page first
             setIsApproved(true);
-            // Add small delay for mobile browsers
-            setTimeout(() => {
-              router.push("/welcome");
-            }, 200);
+            router.push("/welcome");
           } else {
             // User is not approved, stay on this page
             setIsApproved(false);
