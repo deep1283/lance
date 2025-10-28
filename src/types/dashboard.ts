@@ -31,9 +31,10 @@ export interface Ad {
   platform: string;
   ad_title?: string;
   ad_copy?: string;
-  image_url?: string;
-  video_url?: string;
-  carousel_images?: string;
+  media_url?: string;
+  image_url?: string; // Keep for backward compatibility
+  video_url?: string; // Keep for backward compatibility
+  carousel_images?: string; // Keep for backward compatibility
   cta_text?: string;
   start_date?: string;
   end_date?: string;
@@ -46,9 +47,10 @@ export interface Creative {
   id: string;
   competitor_id: string;
   platform?: string;
-  image_url?: string;
-  video_url?: string;
-  carousel_images?: string;
+  media_url?: string;
+  image_url?: string; // Keep for backward compatibility
+  video_url?: string; // Keep for backward compatibility
+  carousel_images?: string; // Keep for backward compatibility
   caption?: string;
   post_type?: string;
   likes_count?: number;

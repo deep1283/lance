@@ -176,12 +176,12 @@ const DashboardCharts: React.FC = () => {
       // Fetch Video vs Image distribution (PAID ADS + RECENT POSTS)
       const { data: ads } = await supabase
         .from("competitor_ads")
-        .select("image_url, video_url")
+        .select("media_url, ad_type")
         .in("competitor_id", competitorIds);
 
       const { data: recentPosts } = await supabase
         .from("competitor_creatives")
-        .select("image_url, video_url")
+        .select("media_url, post_type")
         .in("competitor_id", competitorIds);
 
       // Count video vs image ads
@@ -189,17 +189,17 @@ const DashboardCharts: React.FC = () => {
       let imageCount = 0;
 
       ads?.forEach((ad) => {
-        if (ad.video_url) {
+        if (ad.ad_type === 'video' || (ad.media_url && ad.media_url.includes('video'))) {
           videoCount++;
-        } else if (ad.image_url) {
+        } else if (ad.media_url && !ad.media_url.includes(',')) {
           imageCount++;
         }
       });
 
       recentPosts?.forEach((post) => {
-        if (post.video_url) {
+        if (post.post_type === 'reel' || (post.media_url && post.media_url.includes('video'))) {
           videoCount++;
-        } else if (post.image_url) {
+        } else if (post.media_url && !post.media_url.includes(',')) {
           imageCount++;
         }
       });

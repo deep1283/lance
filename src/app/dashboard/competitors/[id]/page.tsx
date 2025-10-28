@@ -411,16 +411,18 @@ const CompetitorDetailPage: React.FC = () => {
                             key={index}
                             className="bg-gray-900 rounded-lg p-4 border border-gray-700"
                           >
-                            {ad.image_url && (
+                            {(() => {
+                              const mediaInfo = getMediaInfo(ad);
+                              return mediaInfo && mediaInfo.type === 'image' && (
                               <div className="relative group cursor-pointer">
                                 <img
-                                  src={ad.image_url}
+                                  src={mediaInfo.url}
                                   alt={ad.ad_title || "Ad Image"}
                                   className="w-full h-48 object-cover rounded-lg mb-3"
                                   onClick={() =>
                                     setSelectedMedia({
                                       type: "image",
-                                      url: ad.image_url || "",
+                                      url: mediaInfo.url,
                                     })
                                   }
                                 />
@@ -443,14 +445,14 @@ const CompetitorDetailPage: React.FC = () => {
                                   </div>
                                 </div>
                               </div>
-                            )}
-                            {ad.carousel_images &&
-                              ad.carousel_images.split(",").length > 0 && (
+                              );
+                            })()}
+                            {(() => {
+                              const mediaInfo = getMediaInfo(ad);
+                              return mediaInfo && mediaInfo.type === 'carousel' && mediaInfo.urls.length > 0 && (
                                 <div className="mb-3">
                                   <div className="flex overflow-x-auto gap-2 pb-2">
-                                    {ad.carousel_images
-                                      .split(",")
-                                      .map(
+                                    {mediaInfo.urls.map(
                                         (imageUrl: string, index: number) => (
                                           <div
                                             key={index}
@@ -491,20 +493,22 @@ const CompetitorDetailPage: React.FC = () => {
                                       )}
                                   </div>
                                 </div>
-                              )}
-                            {ad.video_url && (
+                              );
+                            })()}
+                            {(() => {
+                              const mediaInfo = getMediaInfo(ad);
+                              return mediaInfo && mediaInfo.type === 'video' && (
                               <div className="relative group cursor-pointer">
                                 <video
-                                  src={ad.video_url}
+                                  src={mediaInfo.url}
                                   className="w-full h-48 object-cover rounded-lg mb-3"
                                   onClick={() =>
                                     setSelectedMedia({
                                       type: "video",
-                                      url: ad.video_url || "",
+                                      url: mediaInfo.url,
                                     })
                                   }
                                   preload="metadata"
-                                  poster={ad.image_url || undefined} // Use image as poster if available
                                 />
                                 {/* Overlay fix: allow clicks through and disable base opacity */}
                                 <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
