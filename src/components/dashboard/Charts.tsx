@@ -189,17 +189,23 @@ const DashboardCharts: React.FC = () => {
       let imageCount = 0;
 
       ads?.forEach((ad) => {
-        if (ad.ad_type === 'video' || (ad.media_url && ad.media_url.includes('video'))) {
+        if (
+          ad.ad_type === "video" ||
+          (ad.media_url && ad.media_url.includes("video"))
+        ) {
           videoCount++;
-        } else if (ad.media_url && !ad.media_url.includes(',')) {
+        } else if (ad.media_url && !ad.media_url.includes(",")) {
           imageCount++;
         }
       });
 
       recentPosts?.forEach((post) => {
-        if (post.post_type === 'reel' || (post.media_url && post.media_url.includes('video'))) {
+        if (
+          post.post_type === "reel" ||
+          (post.media_url && post.media_url.includes("video"))
+        ) {
           videoCount++;
-        } else if (post.media_url && !post.media_url.includes(',')) {
+        } else if (post.media_url && !post.media_url.includes(",")) {
           imageCount++;
         }
       });

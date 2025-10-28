@@ -529,7 +529,8 @@ const CompetitorDetailPage: React.FC = () => {
                                   </div>
                                 </div>
                               </div>
-                            )}
+                              );
+                            })()}
                             <div
                               className="text-sm text-gray-300 cursor-pointer hover:bg-gray-800 rounded-lg p-2 transition-colors"
                               onClick={() => setSelectedAd(ad)}
@@ -791,16 +792,18 @@ const CompetitorDetailPage: React.FC = () => {
                             key={index}
                             className="bg-gray-900 rounded-lg p-4 border border-gray-700"
                           >
-                            {creative.image_url && (
+                            {(() => {
+                              const mediaInfo = getMediaInfo(creative);
+                              return mediaInfo && mediaInfo.type === 'image' && (
                               <div className="relative group cursor-pointer">
                                 <img
-                                  src={creative.image_url}
+                                  src={mediaInfo.url}
                                   alt={creative.caption || "Organic Post"}
                                   className="w-full h-48 object-cover rounded-lg mb-3"
                                   onClick={() =>
                                     setSelectedMedia({
                                       type: "image",
-                                      url: creative.image_url || "",
+                                      url: mediaInfo.url,
                                     })
                                   }
                                 />
@@ -822,16 +825,15 @@ const CompetitorDetailPage: React.FC = () => {
                                   </div>
                                 </div>
                               </div>
-                            )}
+                              );
+                            })()}
 
-                            {creative.carousel_images &&
-                              creative.carousel_images.split(",").length >
-                                0 && (
+                            {(() => {
+                              const mediaInfo = getMediaInfo(creative);
+                              return mediaInfo && mediaInfo.type === 'carousel' && mediaInfo.urls.length > 0 && (
                                 <div className="mb-3">
                                   <div className="flex overflow-x-auto gap-2 pb-2">
-                                    {creative.carousel_images
-                                      .split(",")
-                                      .map(
+                                    {mediaInfo.urls.map(
                                         (imageUrl: string, index: number) => (
                                           <div
                                             key={index}
@@ -872,21 +874,23 @@ const CompetitorDetailPage: React.FC = () => {
                                       )}
                                   </div>
                                 </div>
-                              )}
+                              );
+                            })()}
 
-                            {creative.video_url && (
+                            {(() => {
+                              const mediaInfo = getMediaInfo(creative);
+                              return mediaInfo && mediaInfo.type === 'video' && (
                               <div className="relative group cursor-pointer">
                                 <video
-                                  src={creative.video_url}
+                                  src={mediaInfo.url}
                                   className="w-full h-48 object-cover rounded-lg mb-3"
                                   onClick={() =>
                                     setSelectedMedia({
                                       type: "video",
-                                      url: creative.video_url || "",
+                                      url: mediaInfo.url,
                                     })
                                   }
                                   preload="metadata"
-                                  poster={creative.image_url || undefined}
                                 />
                                 <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
                                   <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -906,7 +910,8 @@ const CompetitorDetailPage: React.FC = () => {
                                   </div>
                                 </div>
                               </div>
-                            )}
+                              );
+                            })()}
                             <div
                               className="text-sm text-gray-300 cursor-pointer hover:bg-gray-800 rounded-lg p-2 transition-colors"
                               onClick={() => setSelectedCreative(creative)}
@@ -958,15 +963,17 @@ const CompetitorDetailPage: React.FC = () => {
                             key={index}
                             className="bg-gray-900 rounded-lg p-4 border border-gray-700"
                           >
-                            {post.video_url && (
+                            {(() => {
+                              const mediaInfo = getMediaInfo(post);
+                              return mediaInfo && mediaInfo.type === 'video' && (
                               <div className="relative group cursor-pointer">
                                 <video
-                                  src={post.video_url}
+                                  src={mediaInfo.url}
                                   className="w-full h-48 object-cover rounded-lg mb-3"
                                   onClick={() =>
                                     setSelectedMedia({
                                       type: "video",
-                                      url: post.video_url || "",
+                                      url: mediaInfo.url,
                                     })
                                   }
                                   preload="metadata"
@@ -989,15 +996,15 @@ const CompetitorDetailPage: React.FC = () => {
                                   </div>
                                 </div>
                               </div>
-                            )}
+                              );
+                            })()}
 
-                            {post.carousel_images &&
-                              post.carousel_images.split(",").length > 0 && (
+                            {(() => {
+                              const mediaInfo = getMediaInfo(post);
+                              return mediaInfo && mediaInfo.type === 'carousel' && mediaInfo.urls.length > 0 && (
                                 <div className="mb-3">
                                   <div className="flex overflow-x-auto gap-2 pb-2">
-                                    {post.carousel_images
-                                      .split(",")
-                                      .map(
+                                    {mediaInfo.urls.map(
                                         (imageUrl: string, index: number) => (
                                           <div
                                             key={index}
@@ -1038,7 +1045,8 @@ const CompetitorDetailPage: React.FC = () => {
                                       )}
                                   </div>
                                 </div>
-                              )}
+                              );
+                            })()}
                             <div
                               className="text-sm text-gray-300 cursor-pointer hover:bg-gray-800 rounded-lg p-2 transition-colors"
                               onClick={() => setSelectedCreative(post)}
@@ -1474,41 +1482,45 @@ const CompetitorDetailPage: React.FC = () => {
                 {selectedCreative.platform} {selectedCreative.post_type} Details
               </h3>
 
-              {/* Image/Video Preview */}
-              {selectedCreative.image_url && (
-                <div className="mb-6">
-                  <img
-                    src={selectedCreative.image_url}
-                    alt="Creative preview"
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
-                </div>
-              )}
-
-              {selectedCreative.video_url && (
-                <div className="mb-6">
-                  <video
-                    src={selectedCreative.video_url}
-                    controls
-                    className="w-full h-64 object-cover rounded-lg"
-                    poster={selectedCreative.image_url}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-              )}
-
-              {/* Carousel Images */}
-              {selectedCreative.carousel_images &&
-                selectedCreative.carousel_images.split(",").length > 0 && (
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-white mb-3">
-                      Carousel Images
-                    </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {selectedCreative.carousel_images
-                        .split(",")
-                        .map((imageUrl: string, index: number) => (
+              {/* Media Preview */}
+              {(() => {
+                const mediaInfo = getMediaInfo(selectedCreative);
+                if (!mediaInfo) return null;
+                
+                if (mediaInfo.type === 'image') {
+                  return (
+                    <div className="mb-6">
+                      <img
+                        src={mediaInfo.url}
+                        alt="Creative preview"
+                        className="w-full h-64 object-cover rounded-lg"
+                      />
+                    </div>
+                  );
+                }
+                
+                if (mediaInfo.type === 'video') {
+                  return (
+                    <div className="mb-6">
+                      <video
+                        src={mediaInfo.url}
+                        controls
+                        className="w-full h-64 object-cover rounded-lg"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                  );
+                }
+                
+                if (mediaInfo.type === 'carousel') {
+                  return (
+                    <div className="mb-6">
+                      <h4 className="text-lg font-semibold text-white mb-3">
+                        Carousel Images
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {mediaInfo.urls.map((imageUrl: string, index: number) => (
                           <img
                             key={index}
                             src={imageUrl}
@@ -1516,9 +1528,13 @@ const CompetitorDetailPage: React.FC = () => {
                             className="w-full h-32 object-cover rounded-lg"
                           />
                         ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                }
+                
+                return null;
+              })()}
 
               {/* Full Caption */}
               {selectedCreative.caption && (
@@ -1627,41 +1643,45 @@ const CompetitorDetailPage: React.FC = () => {
                 Paid Ad Details
               </h3>
 
-              {/* Image/Video Preview */}
-              {selectedAd.image_url && (
-                <div className="mb-6">
-                  <img
-                    src={selectedAd.image_url}
-                    alt="Ad preview"
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
-                </div>
-              )}
-
-              {selectedAd.video_url && (
-                <div className="mb-6">
-                  <video
-                    src={selectedAd.video_url}
-                    controls
-                    className="w-full h-64 object-cover rounded-lg"
-                    poster={selectedAd.image_url}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-              )}
-
-              {/* Carousel Images */}
-              {selectedAd.carousel_images &&
-                selectedAd.carousel_images.split(",").length > 0 && (
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-white mb-3">
-                      Carousel Images
-                    </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {selectedAd.carousel_images
-                        .split(",")
-                        .map((imageUrl: string, index: number) => (
+              {/* Media Preview */}
+              {(() => {
+                const mediaInfo = getMediaInfo(selectedAd);
+                if (!mediaInfo) return null;
+                
+                if (mediaInfo.type === 'image') {
+                  return (
+                    <div className="mb-6">
+                      <img
+                        src={mediaInfo.url}
+                        alt="Ad preview"
+                        className="w-full h-64 object-cover rounded-lg"
+                      />
+                    </div>
+                  );
+                }
+                
+                if (mediaInfo.type === 'video') {
+                  return (
+                    <div className="mb-6">
+                      <video
+                        src={mediaInfo.url}
+                        controls
+                        className="w-full h-64 object-cover rounded-lg"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                  );
+                }
+                
+                if (mediaInfo.type === 'carousel') {
+                  return (
+                    <div className="mb-6">
+                      <h4 className="text-lg font-semibold text-white mb-3">
+                        Carousel Images
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {mediaInfo.urls.map((imageUrl: string, index: number) => (
                           <img
                             key={index}
                             src={imageUrl}
@@ -1669,9 +1689,13 @@ const CompetitorDetailPage: React.FC = () => {
                             className="w-full h-32 object-cover rounded-lg"
                           />
                         ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                }
+                
+                return null;
+              })()}
 
               {/* Ad Copy */}
               {selectedAd.ad_copy && (
