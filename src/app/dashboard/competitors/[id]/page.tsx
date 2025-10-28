@@ -28,19 +28,25 @@ import {
 // Helper function to get media info from media_url
 const getMediaInfo = (item: any) => {
   if (!item.media_url) return null;
-  
+
   // Check if it's a video (reel)
-  if (item.post_type === 'reel' || item.ad_type === 'video') {
-    return { type: 'video', url: item.media_url };
+  if (item.post_type === "reel" || item.ad_type === "video") {
+    return { type: "video", url: item.media_url };
   }
-  
+
   // Check if it's a carousel (comma-separated URLs)
-  if (item.post_type === 'carousel' || (item.media_url.includes(',') && !item.media_url.includes('video'))) {
-    return { type: 'carousel', urls: item.media_url.split(',').map((url: string) => url.trim()) };
+  if (
+    item.post_type === "carousel" ||
+    (item.media_url.includes(",") && !item.media_url.includes("video"))
+  ) {
+    return {
+      type: "carousel",
+      urls: item.media_url.split(",").map((url: string) => url.trim()),
+    };
   }
-  
+
   // Default to image
-  return { type: 'image', url: item.media_url };
+  return { type: "image", url: item.media_url };
 };
 
 const CompetitorDetailPage: React.FC = () => {
@@ -413,46 +419,52 @@ const CompetitorDetailPage: React.FC = () => {
                           >
                             {(() => {
                               const mediaInfo = getMediaInfo(ad);
-                              return mediaInfo && mediaInfo.type === 'image' && (
-                              <div className="relative group cursor-pointer">
-                                <img
-                                  src={mediaInfo.url}
-                                  alt={ad.ad_title || "Ad Image"}
-                                  className="w-full h-48 object-cover rounded-lg mb-3"
-                                  onClick={() =>
-                                    setSelectedMedia({
-                                      type: "image",
-                                      url: mediaInfo.url,
-                                    })
-                                  }
-                                />
-                                {/* Overlay fix: allow clicks through and disable base opacity */}
-                                <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    <svg
-                                      className="w-8 h-8 text-white"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                                      />
-                                    </svg>
+                              return (
+                                mediaInfo &&
+                                mediaInfo.type === "image" && (
+                                  <div className="relative group cursor-pointer">
+                                    <img
+                                      src={mediaInfo.url}
+                                      alt={ad.ad_title || "Ad Image"}
+                                      className="w-full h-48 object-cover rounded-lg mb-3"
+                                      onClick={() =>
+                                        setSelectedMedia({
+                                          type: "image",
+                                          url: mediaInfo.url,
+                                        })
+                                      }
+                                    />
+                                    {/* Overlay fix: allow clicks through and disable base opacity */}
+                                    <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        <svg
+                                          className="w-8 h-8 text-white"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                                          />
+                                        </svg>
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                              </div>
+                                )
                               );
                             })()}
                             {(() => {
                               const mediaInfo = getMediaInfo(ad);
-                              return mediaInfo && mediaInfo.type === 'carousel' && mediaInfo.urls.length > 0 && (
-                                <div className="mb-3">
-                                  <div className="flex overflow-x-auto gap-2 pb-2">
-                                    {mediaInfo.urls.map(
+                              return (
+                                mediaInfo &&
+                                mediaInfo.type === "carousel" &&
+                                mediaInfo.urls.length > 0 && (
+                                  <div className="mb-3">
+                                    <div className="flex overflow-x-auto gap-2 pb-2">
+                                      {mediaInfo.urls.map(
                                         (imageUrl: string, index: number) => (
                                           <div
                                             key={index}
@@ -491,44 +503,48 @@ const CompetitorDetailPage: React.FC = () => {
                                           </div>
                                         )
                                       )}
+                                    </div>
                                   </div>
-                                </div>
+                                )
                               );
                             })()}
                             {(() => {
                               const mediaInfo = getMediaInfo(ad);
-                              return mediaInfo && mediaInfo.type === 'video' && (
-                              <div className="relative group cursor-pointer">
-                                <video
-                                  src={mediaInfo.url}
-                                  className="w-full h-48 object-cover rounded-lg mb-3"
-                                  onClick={() =>
-                                    setSelectedMedia({
-                                      type: "video",
-                                      url: mediaInfo.url,
-                                    })
-                                  }
-                                  preload="metadata"
-                                />
-                                {/* Overlay fix: allow clicks through and disable base opacity */}
-                                <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    <svg
-                                      className="w-8 h-8 text-white"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                      />
-                                    </svg>
+                              return (
+                                mediaInfo &&
+                                mediaInfo.type === "video" && (
+                                  <div className="relative group cursor-pointer">
+                                    <video
+                                      src={mediaInfo.url}
+                                      className="w-full h-48 object-cover rounded-lg mb-3"
+                                      onClick={() =>
+                                        setSelectedMedia({
+                                          type: "video",
+                                          url: mediaInfo.url,
+                                        })
+                                      }
+                                      preload="metadata"
+                                    />
+                                    {/* Overlay fix: allow clicks through and disable base opacity */}
+                                    <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        <svg
+                                          className="w-8 h-8 text-white"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                          />
+                                        </svg>
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                              </div>
+                                )
                               );
                             })()}
                             <div
@@ -794,46 +810,52 @@ const CompetitorDetailPage: React.FC = () => {
                           >
                             {(() => {
                               const mediaInfo = getMediaInfo(creative);
-                              return mediaInfo && mediaInfo.type === 'image' && (
-                              <div className="relative group cursor-pointer">
-                                <img
-                                  src={mediaInfo.url}
-                                  alt={creative.caption || "Organic Post"}
-                                  className="w-full h-48 object-cover rounded-lg mb-3"
-                                  onClick={() =>
-                                    setSelectedMedia({
-                                      type: "image",
-                                      url: mediaInfo.url,
-                                    })
-                                  }
-                                />
-                                <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    <svg
-                                      className="w-8 h-8 text-white"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                                      />
-                                    </svg>
+                              return (
+                                mediaInfo &&
+                                mediaInfo.type === "image" && (
+                                  <div className="relative group cursor-pointer">
+                                    <img
+                                      src={mediaInfo.url}
+                                      alt={creative.caption || "Organic Post"}
+                                      className="w-full h-48 object-cover rounded-lg mb-3"
+                                      onClick={() =>
+                                        setSelectedMedia({
+                                          type: "image",
+                                          url: mediaInfo.url,
+                                        })
+                                      }
+                                    />
+                                    <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        <svg
+                                          className="w-8 h-8 text-white"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                                          />
+                                        </svg>
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                              </div>
+                                )
                               );
                             })()}
 
                             {(() => {
                               const mediaInfo = getMediaInfo(creative);
-                              return mediaInfo && mediaInfo.type === 'carousel' && mediaInfo.urls.length > 0 && (
-                                <div className="mb-3">
-                                  <div className="flex overflow-x-auto gap-2 pb-2">
-                                    {mediaInfo.urls.map(
+                              return (
+                                mediaInfo &&
+                                mediaInfo.type === "carousel" &&
+                                mediaInfo.urls.length > 0 && (
+                                  <div className="mb-3">
+                                    <div className="flex overflow-x-auto gap-2 pb-2">
+                                      {mediaInfo.urls.map(
                                         (imageUrl: string, index: number) => (
                                           <div
                                             key={index}
@@ -872,44 +894,48 @@ const CompetitorDetailPage: React.FC = () => {
                                           </div>
                                         )
                                       )}
+                                    </div>
                                   </div>
-                                </div>
+                                )
                               );
                             })()}
 
                             {(() => {
                               const mediaInfo = getMediaInfo(creative);
-                              return mediaInfo && mediaInfo.type === 'video' && (
-                              <div className="relative group cursor-pointer">
-                                <video
-                                  src={mediaInfo.url}
-                                  className="w-full h-48 object-cover rounded-lg mb-3"
-                                  onClick={() =>
-                                    setSelectedMedia({
-                                      type: "video",
-                                      url: mediaInfo.url,
-                                    })
-                                  }
-                                  preload="metadata"
-                                />
-                                <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    <svg
-                                      className="w-8 h-8 text-white"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                      />
-                                    </svg>
+                              return (
+                                mediaInfo &&
+                                mediaInfo.type === "video" && (
+                                  <div className="relative group cursor-pointer">
+                                    <video
+                                      src={mediaInfo.url}
+                                      className="w-full h-48 object-cover rounded-lg mb-3"
+                                      onClick={() =>
+                                        setSelectedMedia({
+                                          type: "video",
+                                          url: mediaInfo.url,
+                                        })
+                                      }
+                                      preload="metadata"
+                                    />
+                                    <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        <svg
+                                          className="w-8 h-8 text-white"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                          />
+                                        </svg>
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                              </div>
+                                )
                               );
                             })()}
                             <div
@@ -965,46 +991,52 @@ const CompetitorDetailPage: React.FC = () => {
                           >
                             {(() => {
                               const mediaInfo = getMediaInfo(post);
-                              return mediaInfo && mediaInfo.type === 'video' && (
-                              <div className="relative group cursor-pointer">
-                                <video
-                                  src={mediaInfo.url}
-                                  className="w-full h-48 object-cover rounded-lg mb-3"
-                                  onClick={() =>
-                                    setSelectedMedia({
-                                      type: "video",
-                                      url: mediaInfo.url,
-                                    })
-                                  }
-                                  preload="metadata"
-                                />
-                                <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                    <svg
-                                      className="w-8 h-8 text-white"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                      />
-                                    </svg>
+                              return (
+                                mediaInfo &&
+                                mediaInfo.type === "video" && (
+                                  <div className="relative group cursor-pointer">
+                                    <video
+                                      src={mediaInfo.url}
+                                      className="w-full h-48 object-cover rounded-lg mb-3"
+                                      onClick={() =>
+                                        setSelectedMedia({
+                                          type: "video",
+                                          url: mediaInfo.url,
+                                        })
+                                      }
+                                      preload="metadata"
+                                    />
+                                    <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        <svg
+                                          className="w-8 h-8 text-white"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                          />
+                                        </svg>
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                              </div>
+                                )
                               );
                             })()}
 
                             {(() => {
                               const mediaInfo = getMediaInfo(post);
-                              return mediaInfo && mediaInfo.type === 'carousel' && mediaInfo.urls.length > 0 && (
-                                <div className="mb-3">
-                                  <div className="flex overflow-x-auto gap-2 pb-2">
-                                    {mediaInfo.urls.map(
+                              return (
+                                mediaInfo &&
+                                mediaInfo.type === "carousel" &&
+                                mediaInfo.urls.length > 0 && (
+                                  <div className="mb-3">
+                                    <div className="flex overflow-x-auto gap-2 pb-2">
+                                      {mediaInfo.urls.map(
                                         (imageUrl: string, index: number) => (
                                           <div
                                             key={index}
@@ -1043,8 +1075,9 @@ const CompetitorDetailPage: React.FC = () => {
                                           </div>
                                         )
                                       )}
+                                    </div>
                                   </div>
-                                </div>
+                                )
                               );
                             })()}
                             <div
@@ -1486,8 +1519,8 @@ const CompetitorDetailPage: React.FC = () => {
               {(() => {
                 const mediaInfo = getMediaInfo(selectedCreative);
                 if (!mediaInfo) return null;
-                
-                if (mediaInfo.type === 'image') {
+
+                if (mediaInfo.type === "image") {
                   return (
                     <div className="mb-6">
                       <img
@@ -1498,8 +1531,8 @@ const CompetitorDetailPage: React.FC = () => {
                     </div>
                   );
                 }
-                
-                if (mediaInfo.type === 'video') {
+
+                if (mediaInfo.type === "video") {
                   return (
                     <div className="mb-6">
                       <video
@@ -1512,27 +1545,29 @@ const CompetitorDetailPage: React.FC = () => {
                     </div>
                   );
                 }
-                
-                if (mediaInfo.type === 'carousel') {
+
+                if (mediaInfo.type === "carousel") {
                   return (
                     <div className="mb-6">
                       <h4 className="text-lg font-semibold text-white mb-3">
                         Carousel Images
                       </h4>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {mediaInfo.urls.map((imageUrl: string, index: number) => (
-                          <img
-                            key={index}
-                            src={imageUrl}
-                            alt={`Carousel ${index + 1}`}
-                            className="w-full h-32 object-cover rounded-lg"
-                          />
-                        ))}
+                        {mediaInfo.urls.map(
+                          (imageUrl: string, index: number) => (
+                            <img
+                              key={index}
+                              src={imageUrl}
+                              alt={`Carousel ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg"
+                            />
+                          )
+                        )}
                       </div>
                     </div>
                   );
                 }
-                
+
                 return null;
               })()}
 
@@ -1647,8 +1682,8 @@ const CompetitorDetailPage: React.FC = () => {
               {(() => {
                 const mediaInfo = getMediaInfo(selectedAd);
                 if (!mediaInfo) return null;
-                
-                if (mediaInfo.type === 'image') {
+
+                if (mediaInfo.type === "image") {
                   return (
                     <div className="mb-6">
                       <img
@@ -1659,8 +1694,8 @@ const CompetitorDetailPage: React.FC = () => {
                     </div>
                   );
                 }
-                
-                if (mediaInfo.type === 'video') {
+
+                if (mediaInfo.type === "video") {
                   return (
                     <div className="mb-6">
                       <video
@@ -1673,27 +1708,29 @@ const CompetitorDetailPage: React.FC = () => {
                     </div>
                   );
                 }
-                
-                if (mediaInfo.type === 'carousel') {
+
+                if (mediaInfo.type === "carousel") {
                   return (
                     <div className="mb-6">
                       <h4 className="text-lg font-semibold text-white mb-3">
                         Carousel Images
                       </h4>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {mediaInfo.urls.map((imageUrl: string, index: number) => (
-                          <img
-                            key={index}
-                            src={imageUrl}
-                            alt={`Carousel ${index + 1}`}
-                            className="w-full h-32 object-cover rounded-lg"
-                          />
-                        ))}
+                        {mediaInfo.urls.map(
+                          (imageUrl: string, index: number) => (
+                            <img
+                              key={index}
+                              src={imageUrl}
+                              alt={`Carousel ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg"
+                            />
+                          )
+                        )}
                       </div>
                     </div>
                   );
                 }
-                
+
                 return null;
               })()}
 
