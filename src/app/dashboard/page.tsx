@@ -8,8 +8,7 @@ import DashboardSidebar from "@/components/dashboard/Sidebar";
 import DashboardHeader from "@/components/dashboard/Header";
 import { CompetitorWithStats } from "@/types/dashboard";
 import { supabase } from "@/lib/supabase";
-import { useAIAnalysis } from "@/hooks/useAIAnalysis";
-import AIAnalysisDisplay from "@/components/AIAnalysisDisplay";
+// Removed AI analysis from main dashboard
 
 // Lazy load heavy components
 const CompetitorOverview = dynamic(
@@ -34,12 +33,9 @@ const DashboardPage: React.FC = () => {
   const router = useRouter();
   const [competitors, setCompetitors] = useState<CompetitorWithStats[]>([]);
   const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [didYouKnow, setDidYouKnow] = useState<any[]>([]);
 
-  // AI Analysis for competitive intelligence (using user ID for comprehensive analysis)
-  const competitiveIntelligence = useAIAnalysis(
-    user?.id || "",
-    "competitive_intelligence"
-  );
+  // AI analysis removed from main dashboard
 
   useEffect(() => {
     if (!loading && !user) {
@@ -50,6 +46,7 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     if (user) {
       fetchCompetitorsWithStats();
+      fetchDidYouKnow();
     }
   }, [user]);
 
@@ -171,6 +168,23 @@ const DashboardPage: React.FC = () => {
       console.error("Error fetching competitors:", error);
     } finally {
       setDashboardLoading(false);
+    }
+  };
+
+  const fetchDidYouKnow = async () => {
+    try {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from("did_you_know")
+        .select("id, note, date")
+        .eq("user_id", user.id)
+        .order("date", { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      setDidYouKnow(data || []);
+    } catch (error) {
+      console.error("Error fetching did you know:", error);
     }
   };
 
@@ -583,44 +597,40 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* AI Competitive Analysis */}
-          <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-xl p-6 mb-8 border border-[#2a2a2a]">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-violet-500/20">
-                <svg
-                  className="w-5 h-5 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold text-white">
-                AI Competitive Analysis
-              </h2>
-            </div>
-            <div className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1f1f1f]">
-              {competitiveIntelligence.loading ? (
-                <div className="flex items-center space-x-3">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-violet-500"></div>
-                  <p className="text-gray-300 text-sm">
-                    Generating competitive intelligence...
-                  </p>
+          {/* Did You Know 💡 Section */}
+          {didYouKnow.length > 0 && (
+            <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] rounded-xl p-6 mb-8 border border-[#2a2a2a]">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-yellow-600 to-orange-600 rounded-lg flex items-center justify-center shadow-lg shadow-yellow-500/20">
+                  <span className="text-2xl">💡</span>
                 </div>
-              ) : (
-                <AIAnalysisDisplay
-                  analysis={competitiveIntelligence.analysis}
-                  isLoading={competitiveIntelligence.loading}
-                />
-              )}
+                <h2 className="text-xl font-semibold text-white">
+                  Did You Know
+                </h2>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                {didYouKnow.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1f1f1f] hover:border-yellow-500/30 transition-all duration-300 w-full"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-gradient-to-br from-yellow-600 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span className="text-white font-bold text-sm">
+                          {index + 1}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-gray-100 text-lg md:text-xl font-semibold leading-relaxed">
+                          {item.note}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Competitor Performance Comparison */}
           <div className="mb-8">
