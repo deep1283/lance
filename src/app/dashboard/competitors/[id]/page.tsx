@@ -27,14 +27,6 @@ import {
 
 // Helper function to get media info from media_url
 const getMediaInfo = (item: any) => {
-  // Debug logging
-  console.log("getMediaInfo item:", {
-    id: item.id,
-    media_url: item.media_url,
-    post_type: item.post_type,
-    ad_type: item.ad_type,
-  });
-
   if (!item.media_url) return null;
 
   // Check if it's a video (reel or video ad)
@@ -201,7 +193,9 @@ const CompetitorDetailPage: React.FC = () => {
           // Fetch competitor creatives (organic social media)
           supabase
             .from("competitor_creatives")
-            .select("*, media_url")
+            .select(
+              "id, competitor_id, platform, caption, likes_count, views_count, comments_count, posted_at, post_type, media_url"
+            )
             .eq("competitor_id", params.id)
             .order("posted_at", { ascending: false }),
 

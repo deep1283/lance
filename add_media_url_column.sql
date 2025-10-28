@@ -10,8 +10,7 @@ UPDATE public.competitor_creatives
 SET media_url = CASE 
   WHEN post_type = 'reel' AND video_url IS NOT NULL THEN video_url
   WHEN post_type = 'photo' AND image_url IS NOT NULL THEN image_url
-  WHEN post_type = 'carousel' AND carousel_images IS NOT NULL AND carousel_images != '' THEN 
-    (SELECT string_agg(img->>'url', ',') FROM jsonb_array_elements(carousel_images::jsonb) AS img)
+  WHEN post_type = 'carousel' AND carousel_images IS NOT NULL AND carousel_images != '' THEN carousel_images
   ELSE 'https://via.placeholder.com/400x400?text=No+Media' -- fallback for missing media
 END;
 
