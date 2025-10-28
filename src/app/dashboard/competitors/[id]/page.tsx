@@ -25,6 +25,24 @@ import {
   Cell,
 } from "recharts";
 
+// Helper function to get media info from media_url
+const getMediaInfo = (item: any) => {
+  if (!item.media_url) return null;
+  
+  // Check if it's a video (reel)
+  if (item.post_type === 'reel' || item.ad_type === 'video') {
+    return { type: 'video', url: item.media_url };
+  }
+  
+  // Check if it's a carousel (comma-separated URLs)
+  if (item.post_type === 'carousel' || (item.media_url.includes(',') && !item.media_url.includes('video'))) {
+    return { type: 'carousel', urls: item.media_url.split(',').map((url: string) => url.trim()) };
+  }
+  
+  // Default to image
+  return { type: 'image', url: item.media_url };
+};
+
 const CompetitorDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
@@ -154,14 +172,14 @@ const CompetitorDetailPage: React.FC = () => {
           // Fetch competitor ads
           supabase
             .from("competitor_ads")
-            .select("*")
+            .select("*, media_url")
             .eq("competitor_id", params.id)
             .order("start_date", { ascending: false }),
 
           // Fetch competitor creatives (organic social media)
           supabase
             .from("competitor_creatives")
-            .select("*")
+            .select("*, media_url")
             .eq("competitor_id", params.id)
             .order("posted_at", { ascending: false }),
 

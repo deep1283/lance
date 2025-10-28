@@ -195,6 +195,21 @@ const StrategyLabPage: React.FC = () => {
                                         preload="metadata"
                                         muted
                                       />
+                                     ) : post.post_type === "carousel" ? (
+                                       <div className="w-full h-48 rounded mb-3 overflow-hidden">
+                                         <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
+                                           {post.media_url
+                                             .split(",")
+                                             .map((url: string, idx: number) => (
+                                               <img
+                                                 key={idx}
+                                                 src={url.trim()}
+                                                 className="flex-shrink-0 w-32 h-48 object-cover rounded"
+                                                 alt={`carousel ${idx + 1}`}
+                                               />
+                                             ))}
+                                         </div>
+                                       </div>
                                     ) : (
                                       <img
                                         src={post.media_url}
