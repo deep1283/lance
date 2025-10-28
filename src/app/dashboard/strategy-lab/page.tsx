@@ -39,7 +39,7 @@ const StrategyLabPage: React.FC = () => {
 
         // Fetch live metrics for top creatives if present
         const postIds = (row?.top_creatives || []).map((c: any) => c.post_id);
-        
+
         if (postIds.length > 0) {
           const { data: posts } = await supabase
             .from("competitor_creatives")
@@ -174,10 +174,10 @@ const StrategyLabPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Top Creatives (last 10 days) */}
+                        {/* Top Creatives (weekly analysis) */}
                         <div className="bg-gray-900 rounded-lg p-5 border border-gray-700">
                           <h3 className="text-md font-semibold text-white mb-4">
-                            Top Creatives (last 10 days)
+                            Top Creatives (weekly analysis)
                           </h3>
                           {creativeDetails.length === 0 ? (
                             <div className="text-sm text-gray-400">
@@ -241,6 +241,63 @@ const StrategyLabPage: React.FC = () => {
                               ))}
                             </div>
                           )}
+                        </div>
+
+                        {/* For You - Manual Recommendations */}
+                        <div className="bg-gray-900 rounded-lg p-5 border border-gray-700">
+                          <h3 className="text-md font-semibold text-white mb-4">
+                            For You
+                          </h3>
+
+                          {/* Manual Hashtags */}
+                          <div className="mb-6">
+                            <h4 className="text-sm font-medium text-gray-300 mb-3">
+                              Recommended Hashtags
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {(insights.manual_hashtags || []).map(
+                                (hashtag: string, idx: number) => (
+                                  <span
+                                    key={idx}
+                                    className="px-3 py-1 rounded-full bg-blue-600/10 text-blue-300 border border-blue-700/40 text-xs"
+                                  >
+                                    {hashtag}
+                                  </span>
+                                )
+                              )}
+                              {(!insights.manual_hashtags ||
+                                insights.manual_hashtags.length === 0) && (
+                                <span className="text-gray-500 text-sm">
+                                  No manual hashtags added yet
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Manual Keywords */}
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-300 mb-3">
+                              Recommended Keywords
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {(insights.manual_keywords || []).map(
+                                (keyword: string, idx: number) => (
+                                  <span
+                                    key={idx}
+                                    className="px-3 py-1 rounded-full bg-orange-600/10 text-orange-300 border border-orange-700/40 text-xs"
+                                  >
+                                    {keyword}
+                                  </span>
+                                )
+                              )}
+                              {(!insights.manual_keywords ||
+                                insights.manual_keywords.length === 0) && (
+                                <span className="text-gray-500 text-sm">
+                                  No manual keywords added yet
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </>
                     )}

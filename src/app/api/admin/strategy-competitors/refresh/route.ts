@@ -117,7 +117,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing userId" }, { status: 400 });
     }
 
-    // Determine 10-day window - look at the LAST 10 days, not next 10 days
+    // Determine 7-day window - look at the LAST 7 days (weekly analysis)
     const end = startDate ? new Date(startDate) : new Date();
 
     // normalize end to UTC date without time
@@ -125,7 +125,7 @@ export async function POST(req: Request) {
       Date.UTC(end.getFullYear(), end.getMonth(), end.getDate())
     );
     const startUTC = new Date(endUTC);
-    startUTC.setDate(startUTC.getDate() - 10);
+    startUTC.setDate(startUTC.getDate() - 7);
 
     // Get user's competitors
     const { data: userCompetitors, error: ucError } = await supabase

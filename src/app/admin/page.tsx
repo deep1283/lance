@@ -224,7 +224,7 @@ const AdminDashboard: React.FC = () => {
         </h2>
         <p className="text-gray-300 mb-4">
           Generate competitor insights (top hashtags, keywords, creatives) for
-          the last 10 days.
+          weekly analysis.
         </p>
         <div className="space-y-3">
           {allUsers.length === 0 ? (
