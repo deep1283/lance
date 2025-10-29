@@ -204,7 +204,7 @@ const ApprovalPage: React.FC = () => {
         <p className="text-center text-sm text-gray-400 mt-6">
           Need help?{" "}
           <a
-            href="mailto:support@lanceiq.com"
+            href="mailto:lanceiq.help@gmail.com"
             className="text-[#6c63ff] hover:text-[#5a52d5] underline"
           >
             Contact Support
