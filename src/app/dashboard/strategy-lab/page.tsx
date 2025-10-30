@@ -26,6 +26,7 @@ const StrategyLabPage: React.FC = () => {
   // Trending data state
   const [trendingHashtags, setTrendingHashtags] = useState<any | null>(null);
   const [trendingKeywords, setTrendingKeywords] = useState<any | null>(null);
+  const [trendingAnalysis, setTrendingAnalysis] = useState<any | null>(null);
   const [loadingTrending, setLoadingTrending] = useState(false);
 
   // Load competitor insights for current user (latest window)
@@ -96,6 +97,17 @@ const StrategyLabPage: React.FC = () => {
           .maybeSingle();
 
         setTrendingKeywords(keywordsRow);
+
+        // Get the most recent trending analysis
+        const { data: analysisRow } = await supabase
+          .from("strategy_trending_analysis")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("week_start", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        setTrendingAnalysis(analysisRow);
       } finally {
         setLoadingTrending(false);
       }
@@ -373,7 +385,9 @@ const StrategyLabPage: React.FC = () => {
                       <div className="text-sm text-gray-400">
                         Loading trending data...
                       </div>
-                    ) : !trendingHashtags && !trendingKeywords ? (
+                    ) : !trendingHashtags &&
+                      !trendingKeywords &&
+                      !trendingAnalysis ? (
                       <div className="text-sm text-gray-400">
                         No trending data available yet.
                       </div>
@@ -471,6 +485,46 @@ const StrategyLabPage: React.FC = () => {
                                 </table>
                               </div>
                             )}
+                          </div>
+                        )}
+
+                        {/* Trending Analysis */}
+                        {trendingAnalysis && (
+                          <div className="bg-gray-900 rounded-lg p-5 border border-gray-700">
+                            <h3 className="text-md font-semibold text-white mb-4">
+                              Strategic Analysis
+                            </h3>
+                            <div className="space-y-5">
+                              <div>
+                                <h4 className="text-sm font-semibold text-gray-300 mb-2 flex items-center gap-2">
+                                  🎯 This Week&apos;s Trend
+                                </h4>
+                                <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">
+                                  {trendingAnalysis.this_weeks_trend ||
+                                    "No analysis yet"}
+                                </p>
+                              </div>
+
+                              <div>
+                                <h4 className="text-sm font-semibold text-gray-300 mb-2 flex items-center gap-2">
+                                  💡 What You Should Do
+                                </h4>
+                                <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">
+                                  {trendingAnalysis.what_you_should_do ||
+                                    "No recommendations yet"}
+                                </p>
+                              </div>
+
+                              <div>
+                                <h4 className="text-sm font-semibold text-gray-300 mb-2 flex items-center gap-2">
+                                  ⚠️ Opportunity
+                                </h4>
+                                <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">
+                                  {trendingAnalysis.opportunity ||
+                                    "No opportunities identified yet"}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </>
