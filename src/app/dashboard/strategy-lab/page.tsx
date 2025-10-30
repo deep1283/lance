@@ -23,6 +23,11 @@ const StrategyLabPage: React.FC = () => {
   const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Trending data state
+  const [trendingHashtags, setTrendingHashtags] = useState<any | null>(null);
+  const [trendingKeywords, setTrendingKeywords] = useState<any | null>(null);
+  const [loadingTrending, setLoadingTrending] = useState(false);
+
   // Load competitor insights for current user (latest window)
   React.useEffect(() => {
     const loadData = async () => {
@@ -60,6 +65,42 @@ const StrategyLabPage: React.FC = () => {
       }
     };
     loadData();
+  }, [user, activeTab]);
+
+  // Load trending data for current user (latest week)
+  React.useEffect(() => {
+    const loadTrendingData = async () => {
+      if (!user || activeTab !== "trending") return;
+      setLoadingTrending(true);
+      try {
+        // Get the most recent trending hashtags
+        const { data: hashtagsRow } = await supabase
+          .from("strategy_trending_hashtags")
+          .select("*")
+          .eq("user_id", user.id)
+          .not("hashtags", "eq", "[]")
+          .order("week_start", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        setTrendingHashtags(hashtagsRow);
+
+        // Get the most recent trending keywords
+        const { data: keywordsRow } = await supabase
+          .from("strategy_trending_keywords")
+          .select("*")
+          .eq("user_id", user.id)
+          .not("keywords", "eq", "[]")
+          .order("week_start", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        setTrendingKeywords(keywordsRow);
+      } finally {
+        setLoadingTrending(false);
+      }
+    };
+    loadTrendingData();
   }, [user, activeTab]);
 
   React.useEffect(() => {
@@ -321,15 +362,119 @@ const StrategyLabPage: React.FC = () => {
                 )}
 
                 {activeTab === "trending" && (
-                  <div className="text-gray-300">
-                    <h2 className="text-lg font-semibold text-white mb-3">
-                      Trending
-                    </h2>
-                    <p className="text-sm text-gray-400">
-                      This tab will display weekly trending hashtags, styles,
-                      and reels for your niche. We will wire it to Supabase
-                      next.
-                    </p>
+                  <div className="text-gray-300 space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-semibold text-white">
+                        Trending
+                      </h2>
+                    </div>
+
+                    {loadingTrending ? (
+                      <div className="text-sm text-gray-400">
+                        Loading trending data...
+                      </div>
+                    ) : !trendingHashtags && !trendingKeywords ? (
+                      <div className="text-sm text-gray-400">
+                        No trending data available yet.
+                      </div>
+                    ) : (
+                      <>
+                        {/* Trending Hashtags */}
+                        {trendingHashtags && (
+                          <div className="bg-gray-900 rounded-lg p-5 border border-gray-700">
+                            <h3 className="text-md font-semibold text-white mb-3">
+                              Trending Hashtags
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                              {(trendingHashtags.hashtags || []).map(
+                                (hashtag: string, idx: number) => (
+                                  <span
+                                    key={idx}
+                                    className="px-3 py-1 rounded-full bg-violet-600/10 text-violet-300 border border-violet-700/40 text-xs"
+                                  >
+                                    {hashtag}
+                                  </span>
+                                )
+                              )}
+                              {(!trendingHashtags.hashtags ||
+                                trendingHashtags.hashtags.length === 0) && (
+                                <span className="text-gray-500 text-sm">
+                                  No hashtags added yet
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Trending Keywords Table */}
+                        {trendingKeywords && (
+                          <div className="bg-gray-900 rounded-lg p-5 border border-gray-700">
+                            <h3 className="text-md font-semibold text-white mb-4">
+                              Trending Keywords
+                            </h3>
+                            {!trendingKeywords.keywords ||
+                            trendingKeywords.keywords.length === 0 ? (
+                              <span className="text-gray-500 text-sm">
+                                No keywords added yet
+                              </span>
+                            ) : (
+                              <div className="overflow-x-auto">
+                                <table className="w-full">
+                                  <thead>
+                                    <tr className="border-b border-gray-700">
+                                      <th className="text-left py-3 px-2 text-sm font-semibold text-gray-300">
+                                        Keyword
+                                      </th>
+                                      <th className="text-center py-3 px-2 text-sm font-semibold text-gray-300">
+                                        Frequency
+                                      </th>
+                                      <th className="text-center py-3 px-2 text-sm font-semibold text-gray-300">
+                                        Engagement Index
+                                      </th>
+                                      <th className="text-center py-3 px-2 text-sm font-semibold text-gray-300">
+                                        Trend
+                                      </th>
+                                      <th className="text-left py-3 px-2 text-sm font-semibold text-gray-300">
+                                        Notes
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {(trendingKeywords.keywords || []).map(
+                                      (keyword: any, idx: number) => (
+                                        <tr
+                                          key={idx}
+                                          className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
+                                        >
+                                          <td className="py-3 px-2 text-sm text-white">
+                                            {keyword.keyword || "N/A"}
+                                          </td>
+                                          <td className="py-3 px-2 text-sm text-center text-gray-300">
+                                            {keyword.frequency || 0}
+                                          </td>
+                                          <td className="py-3 px-2 text-sm text-center">
+                                            <span className="text-white">
+                                              {keyword.avg_engagement || 0}%{" "}
+                                              {keyword.trend_signal || ""}
+                                            </span>
+                                          </td>
+                                          <td className="py-3 px-2 text-sm text-center text-2xl">
+                                            {keyword.trend_signal || ""}
+                                          </td>
+                                          <td className="py-3 px-2 text-sm text-gray-400">
+                                            {keyword.notes || ""}
+                                          </td>
+                                        </tr>
+                                      )
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 )}
               </div>
