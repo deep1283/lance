@@ -32,7 +32,9 @@ const AnalyzeYourWebsitePage: React.FC = () => {
             window.location.replace("/approval");
           }
         }
-      } catch (_) {}
+      } catch {
+        // Ignore approval check errors
+      }
     };
 
     checkApproval();
@@ -64,7 +66,9 @@ const AnalyzeYourWebsitePage: React.FC = () => {
       isActive = false;
       try {
         supabase.removeChannel(channel);
-      } catch (_) {}
+      } catch {
+        // Ignore channel cleanup errors
+      }
     };
   }, [user]);
 

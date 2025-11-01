@@ -64,8 +64,8 @@ const DashboardPage: React.FC = () => {
             window.location.replace("/approval");
           }
         }
-      } catch (_) {
-        // ignore
+      } catch {
+        // Ignore approval check errors
       }
     };
 
@@ -98,7 +98,9 @@ const DashboardPage: React.FC = () => {
       isActive = false;
       try {
         supabase.removeChannel(channel);
-      } catch (_) {}
+      } catch {
+        // Ignore channel cleanup errors
+      }
     };
   }, [user]);
 
