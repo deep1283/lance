@@ -19,8 +19,17 @@ const Home: React.FC = () => {
     }
   }, [user, loading, router]);
 
-  // Show nothing while checking auth or if logged in (will redirect)
-  if (loading || user) {
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  // Redirect logged in users to welcome
+  if (user) {
     return null;
   }
 
