@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { Competitor, Ad, Creative } from "@/types/dashboard";
+
+const supabase = createClient();
 
 interface CompetitorData {
   competitor: Competitor | null;

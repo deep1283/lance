@@ -5,10 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { Competitor } from "@/types/dashboard";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+
 import lancelogo from "../../../public/assets/lancelogo.png";
 import lancesymbol from "../../../public/assets/lanceIQ-symbol.png";
+
+const supabase = createClient();
 
 const DashboardSidebar: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);

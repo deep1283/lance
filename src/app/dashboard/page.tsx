@@ -7,8 +7,10 @@ import dynamic from "next/dynamic";
 import DashboardSidebar from "@/components/dashboard/Sidebar";
 import DashboardHeader from "@/components/dashboard/Header";
 import { CompetitorWithStats } from "@/types/dashboard";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 // Removed AI analysis from main dashboard
+
+const supabase = createClient();
 
 // Lazy load heavy components
 const CompetitorOverview = dynamic(

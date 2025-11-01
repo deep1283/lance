@@ -8,7 +8,9 @@ import React, {
   useCallback,
 } from "react";
 import { User, Session, AuthChangeEvent } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
 
 interface AuthContextType {
   user: User | null;

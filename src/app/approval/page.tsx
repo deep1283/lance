@@ -4,9 +4,11 @@ import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import bgimage from "../../../public/assets/bgimage.jpg";
+
+const supabase = createClient();
 
 const ApprovalPage: React.FC = () => {
   const router = useRouter();

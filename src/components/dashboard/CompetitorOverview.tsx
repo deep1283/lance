@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { CompetitorWithStats } from "@/types/dashboard";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { usePrefetch } from "@/hooks/usePrefetch";
+
+const supabase = createClient();
 
 const CompetitorOverview: React.FC = () => {
   const [competitors, setCompetitors] = useState<CompetitorWithStats[]>([]);

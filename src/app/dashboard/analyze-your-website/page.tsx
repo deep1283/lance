@@ -5,7 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import DashboardSidebar from "@/components/dashboard/Sidebar";
 import DashboardHeader from "@/components/dashboard/Header";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
 
 const AnalyzeYourWebsitePage: React.FC = () => {
   const { user, loading } = useAuth();

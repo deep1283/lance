@@ -13,7 +13,9 @@ import {
   Line,
 } from "recharts";
 import { ChartData } from "@/types/dashboard";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
 
 const DashboardCharts: React.FC = () => {
   const [competitorActivity, setCompetitorActivity] = useState<ChartData[]>([]);

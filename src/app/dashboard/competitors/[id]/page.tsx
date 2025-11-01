@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { Competitor, Ad, Creative } from "@/types/dashboard";
 import DashboardSidebar from "@/components/dashboard/Sidebar";
 import DashboardHeader from "@/components/dashboard/Header";
@@ -24,6 +24,8 @@ import {
   Pie,
   Cell,
 } from "recharts";
+
+const supabase = createClient();
 
 // Helper function to get media info from media_url
 const getMediaInfo = (item: any) => {
