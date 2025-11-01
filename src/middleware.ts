@@ -27,8 +27,7 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  // Refresh session to update cookies, then get user
-  await supabase.auth.getSession();
+  // Get user session for auth checks
   const {
     data: { user },
   } = await supabase.auth.getUser();
