@@ -115,11 +115,7 @@ const StrategyLabPage: React.FC = () => {
     loadTrendingData();
   }, [user, activeTab]);
 
-  React.useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-    }
-  }, [user, loading, router]);
+  // Note: Auth check is handled by middleware
 
   if (loading || !user) {
     return (

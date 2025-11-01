@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -12,114 +12,117 @@ const ApprovalPage: React.FC = () => {
   const router = useRouter();
   const { user, loading: authLoading, signOut } = useAuth();
   const [checking, setChecking] = useState(true);
-  const [isApproved, setIsApproved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const checkApprovalStatus = async () => {
-      // If no user, redirect to login
-      if (!authLoading && !user) {
-        router.push("/login");
-        return;
-      }
+  // Memoized approval check function
+  const checkApprovalStatus = useCallback(async () => {
+    // Note: Auth check is handled by middleware
+    if (!user) {
+      setChecking(false);
+      return;
+    }
 
-      if (user) {
-        try {
-          // Check user's approval status from the users table
-          const { data, error } = await supabase
-            .from("users")
-            .select("is_approved")
-            .eq("id", user.id)
-            .single();
+    try {
+      // Check user's approval status from the users table
+      const { data, error } = await supabase
+        .from("users")
+        .select("is_approved")
+        .eq("id", user.id)
+        .single();
 
-          if (error) {
-            // If no user record exists, create one with is_approved = false
-            console.log("No user record found, creating new user record...");
-            const { error: insertError } = await supabase.from("users").insert({
-              id: user.id,
-              email: user.email,
-              is_approved: false,
-              created_at: new Date().toISOString(),
-            });
+      if (error) {
+        // Check if it's a "no rows" error (user doesn't exist)
+        if (error.code === "PGRST116") {
+          console.log("No user record found, creating new user record...");
 
-            if (insertError) {
+          // Create new user record with is_approved = false
+          const { error: insertError } = await supabase.from("users").upsert({
+            id: user.id,
+            email: user.email,
+            is_approved: false,
+            created_at: new Date().toISOString(),
+          });
+
+          if (insertError) {
+            if (process.env.NODE_ENV === "development") {
               console.error("Error creating user record:", insertError);
             }
-            setIsApproved(false);
-          } else if (data?.is_approved === true) {
-            // User is approved, redirect to welcome page first
-            setIsApproved(true);
-            router.push("/welcome");
-          } else {
-            // User is not approved, stay on this page
-            setIsApproved(false);
+            setError(
+              "Could not create your account record. Please contact support."
+            );
           }
-        } catch (err) {
-          console.warn("Error checking approval:", err);
-          setIsApproved(false);
-        } finally {
+          setChecking(false);
+        } else {
+          // Other database errors
+          if (process.env.NODE_ENV === "development") {
+            console.error("Error fetching approval status:", error);
+          }
+          setError("Unable to check approval status. Please try again.");
           setChecking(false);
         }
+      } else if (data?.is_approved === true) {
+        // User is approved, redirect to welcome page immediately
+        router.replace("/welcome");
+        // Don't set checking to false if redirecting
+      } else {
+        // User not approved, show approval page
+        setChecking(false);
       }
-    };
+    } catch (err) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Unexpected error checking approval:", err);
+      }
+      setError("An unexpected error occurred. Please try again.");
+      setChecking(false);
+    }
+  }, [user, router]);
 
+  // Initial approval check
+  useEffect(() => {
     checkApprovalStatus();
-  }, [user, authLoading, router]);
+  }, [checkApprovalStatus]);
 
-  // Subscribe to approval status changes and auto-redirect when approved
+  // Poll for approval status changes (simpler than WebSocket)
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
-      .channel(`user-approval-watch-${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "users",
-          filter: `id=eq.${user.id}`,
-        },
-        (payload) => {
-          const approved = (
-            payload as unknown as { new?: { is_approved?: boolean } }
-          ).new?.is_approved;
-          if (approved === true) {
-            setIsApproved(true);
-            // Hard navigation for mobile reliability
-            try {
-              router.replace("/welcome");
-            } catch (_) {}
-            if (typeof window !== "undefined") {
-              window.location.replace("/welcome");
-            }
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
+    const interval = setInterval(async () => {
       try {
-        supabase.removeChannel(channel);
-      } catch (_) {}
-    };
+        const { data } = await supabase
+          .from("users")
+          .select("is_approved")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (data?.is_approved) {
+          clearInterval(interval);
+          router.replace("/welcome");
+        }
+      } catch (err) {
+        if (process.env.NODE_ENV === "development") {
+          console.error("Error polling approval status:", err);
+        }
+      }
+    }, 5000); // Check every 5 seconds
+
+    return () => clearInterval(interval);
   }, [user, router]);
 
-  const handleLogout = async () => {
-    await signOut();
-    router.push("/");
-  };
+  // Memoized logout handler
+  const handleLogout = useCallback(async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error during logout:", err);
+      }
+    } finally {
+      router.replace("/");
+    }
+  }, [signOut, router]);
 
   // Show loading state while checking auth and approval
   if (authLoading || checking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="text-white text-xl">Preparing dashboard...</div>
-      </div>
-    );
-  }
-
-  // If user is approved, they'll be redirected, so show loading
-  if (isApproved) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
         <div className="text-white text-xl">Preparing dashboard...</div>
@@ -173,6 +176,19 @@ const ApprovalPage: React.FC = () => {
           Awaiting Approval
         </h1>
 
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm"
+            role="alert"
+            aria-live="polite"
+          >
+            {error}
+          </motion.div>
+        )}
+
         {/* Subtext */}
         <div className="text-center mb-8 space-y-3">
           <p className="text-lg text-gray-200">
@@ -195,7 +211,8 @@ const ApprovalPage: React.FC = () => {
         {/* Logout Button */}
         <button
           onClick={handleLogout}
-          className="w-full py-3 px-6 bg-gradient-to-r from-[#6c63ff] to-[#5a52d5] text-white font-semibold rounded-xl hover:from-[#5a52d5] hover:to-[#4a42c5] transition-all duration-300 transform hover:scale-[1.02] shadow-lg"
+          className="w-full py-3 px-6 bg-gradient-to-r from-[#6c63ff] to-[#5a52d5] text-white font-semibold rounded-xl hover:from-[#5a52d5] hover:to-[#4a42c5] transition-all duration-300 transform hover:scale-[1.02] shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-transparent"
+          aria-label="Logout from your account"
         >
           Logout
         </button>
@@ -205,7 +222,8 @@ const ApprovalPage: React.FC = () => {
           Need help?{" "}
           <a
             href="mailto:lanceiq.help@gmail.com"
-            className="text-[#6c63ff] hover:text-[#5a52d5] underline"
+            className="text-[#6c63ff] hover:text-[#5a52d5] underline focus:outline-none focus:ring-2 focus:ring-[#6c63ff] rounded"
+            aria-label="Contact support via email"
           >
             Contact Support
           </a>

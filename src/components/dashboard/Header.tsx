@@ -1,13 +1,23 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
 const DashboardHeader: React.FC = () => {
+  const router = useRouter();
   const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+    } catch (err) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error during logout:", err);
+      }
+    } finally {
+      router.replace("/");
+    }
   };
 
   return (

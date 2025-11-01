@@ -7,10 +7,10 @@ import Head from "next/head";
 import { useRouter } from "next/navigation";
 import bgimage from "../../public/assets/bgimage.jpg";
 // Primary/optimized sources (will fallback gracefully if not present)
-const videoMp4 = "/assets/lancevideo_720p.mp4"; // optimized H.264 (optional)
-const videoWebm = "/assets/lancevideo_720p.webm"; // optimized VP9 (optional)
+const videoMp4 = "/assets/lancevideo.mp4"; // your current file
+const videoWebm = "/assets/lancevideo.mp4"; // fallback to MP4
 const videoFallback = "/assets/lancevideo.mp4"; // your current file
-const videoPoster = "/assets/lancevideo_poster.jpg";
+const videoPoster = undefined; // no poster image
 
 const Hero: React.FC = () => {
   const router = useRouter();
@@ -43,10 +43,6 @@ const Hero: React.FC = () => {
         />
         <meta property="og:type" content="website" />
         <link rel="preload" as="image" href={bgimage.src} />
-        {/* Preload lightweight metadata only to avoid blocking first paint */}
-        <link rel="preload" as="video" href={videoMp4} />
-        <link rel="preload" as="video" href={videoWebm} />
-        <link rel="preload" as="video" href={videoFallback} />
       </Head>
 
       {/* Hero Section */}

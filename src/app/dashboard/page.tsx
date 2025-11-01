@@ -37,11 +37,7 @@ const DashboardPage: React.FC = () => {
 
   // AI analysis removed from main dashboard
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-    }
-  }, [user, loading, router]);
+  // Note: Auth check is handled by middleware
 
   useEffect(() => {
     if (user) {

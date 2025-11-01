@@ -13,11 +13,7 @@ const AnalyzeYourWebsitePage: React.FC = () => {
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  React.useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-    }
-  }, [user, loading, router]);
+  // Note: Auth check is handled by middleware
 
   // Guard: redirect to approval if access revoked while logged in
   React.useEffect(() => {

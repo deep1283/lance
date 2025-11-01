@@ -1,53 +1,110 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import bgimage from "../../../public/assets/bgimage.jpg";
 
 const LoginPage: React.FC = () => {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Note: Redirect logic is handled by middleware for consistency
+
   // Check for error parameters in URL
-  React.useEffect(() => {
+  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const errorParam = urlParams.get("error");
     const detailsParam = urlParams.get("details");
+
     if (errorParam) {
-      const errorMsg = detailsParam
-        ? `Login failed: ${errorParam} - ${detailsParam}`
-        : `Login failed: ${errorParam}`;
+      // Sanitize error messages to prevent XSS
+      const sanitizedError = errorParam.replace(/[<>]/g, "");
+      const sanitizedDetails = detailsParam?.replace(/[<>]/g, "") || "";
+
+      const errorMsg = sanitizedDetails
+        ? `Login failed: ${sanitizedError} - ${sanitizedDetails}`
+        : `Login failed: ${sanitizedError}`;
+
       setError(errorMsg);
+
+      // Clean URL after reading error
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, "", cleanUrl);
     }
   }, []);
 
   // Handle Google OAuth
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = useCallback(async () => {
+    // Prevent multiple simultaneous login attempts
+    if (loading) return;
+
     setLoading(true);
     setError("");
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      // Validate origin before proceeding
+      const origin = window.location.origin;
+      if (
+        !origin.startsWith("http://localhost") &&
+        !origin.startsWith("https://")
+      ) {
+        throw new Error("Invalid origin");
+      }
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/approval`,
+          redirectTo: `${origin}/approval`,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
         },
       });
 
       if (error) throw error;
+
+      // Note: The redirect happens automatically, so we won't reach here normally
+      // But if we do, keep loading state active
     } catch (err) {
       const errorMessage =
         err instanceof Error
           ? err.message
           : "Failed to login with Google. Please try again.";
+
+      if (process.env.NODE_ENV === "development") {
+        console.error("Google login error:", err);
+      }
       setError(errorMessage);
       setLoading(false);
     }
-  };
+  }, [loading]);
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4">
+        <div className="absolute inset-0">
+          <Image
+            src={bgimage}
+            alt="Background"
+            placeholder="blur"
+            fill
+            priority
+            style={{ objectFit: "cover" }}
+          />
+          <div className="absolute inset-0 bg-black/60" />
+        </div>
+        <div className="relative z-10 text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4">
@@ -80,18 +137,25 @@ const LoginPage: React.FC = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm"
+            role="alert"
+            aria-live="polite"
+          >
             {error}
-          </div>
+          </motion.div>
         )}
 
         {/* Google Login Button */}
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="w-full py-4 px-6 bg-white text-gray-900 font-semibold rounded-xl hover:bg-gray-100 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 transform hover:scale-[1.02] shadow-lg"
+          aria-label="Sign in with Google"
+          className="w-full py-4 px-6 bg-white text-gray-900 font-semibold rounded-xl hover:bg-gray-100 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 transform hover:scale-[1.02] shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-transparent"
         >
-          <svg className="w-6 h-6" viewBox="0 0 24 24">
+          <svg className="w-6 h-6" viewBox="0 0 24 24" aria-hidden="true">
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -118,11 +182,17 @@ const LoginPage: React.FC = () => {
         <div className="mt-6 text-center">
           <button
             onClick={() => router.push("/")}
-            className="text-gray-300 hover:text-white text-sm underline bg-transparent border-none cursor-pointer"
+            className="text-gray-300 hover:text-white text-sm underline bg-transparent border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-transparent rounded px-2 py-1"
+            aria-label="Back to home page"
           >
             Back to Home
           </button>
         </div>
+
+        {/* Privacy Note */}
+        <p className="mt-6 text-xs text-gray-400 text-center">
+          By signing in, you agree to our Terms of Service and Privacy Policy
+        </p>
       </motion.div>
     </div>
   );

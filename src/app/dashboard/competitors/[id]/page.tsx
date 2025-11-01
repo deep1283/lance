@@ -88,11 +88,7 @@ const CompetitorDetailPage: React.FC = () => {
     "organic_content_analysis"
   );
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-    }
-  }, [user, loading, router]);
+  // Note: Auth check is handled by middleware
 
   // Guard: redirect to approval if access revoked while logged in
   useEffect(() => {
