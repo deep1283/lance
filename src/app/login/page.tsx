@@ -12,7 +12,7 @@ const supabase = createClient();
 
 const LoginPage: React.FC = () => {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -59,7 +59,7 @@ const LoginPage: React.FC = () => {
         throw new Error("Invalid origin");
       }
 
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${origin}/approval`,

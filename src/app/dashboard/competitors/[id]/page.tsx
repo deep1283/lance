@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -20,15 +21,12 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
 
 const supabase = createClient();
 
 // Helper function to get media info from media_url
-const getMediaInfo = (item: any) => {
+const getMediaInfo = (item: { media_url?: string; post_type?: string }) => {
   if (!item.media_url) return null;
 
   // Check if it's a video (reel or video ad)
@@ -69,7 +67,6 @@ const CompetitorDetailPage: React.FC = () => {
   const [topPosts, setTopPosts] = useState<Creative[]>([]);
   const [adsLoading, setAdsLoading] = useState(true);
   const [creativesLoading, setCreativesLoading] = useState(true);
-  const [topPostsLoading, setTopPostsLoading] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<{
     type: "image" | "video";
     url: string;
@@ -149,6 +146,7 @@ const CompetitorDetailPage: React.FC = () => {
     if (user && params.id) {
       fetchCompetitorData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, params.id]);
 
   const fetchCompetitorData = async () => {
@@ -242,8 +240,7 @@ const CompetitorDetailPage: React.FC = () => {
       } else {
         setTopPosts([]);
       }
-      setTopPostsLoading(false);
-    } catch (error) {
+    } catch {
       router.push("/dashboard");
     } finally {
       setLoadingData(false);
@@ -422,17 +419,19 @@ const CompetitorDetailPage: React.FC = () => {
                                 mediaInfo &&
                                 mediaInfo.type === "image" && (
                                   <div className="relative group cursor-pointer">
-                                    <img
-                                      src={mediaInfo.url}
-                                      alt={ad.ad_title || "Ad Image"}
-                                      className="w-full h-48 object-cover rounded-lg mb-3"
-                                      onClick={() =>
-                                        setSelectedMedia({
-                                          type: "image",
-                                          url: mediaInfo.url,
-                                        })
-                                      }
-                                    />
+                                    {mediaInfo.url && (
+                                      <img
+                                        src={mediaInfo.url}
+                                        alt={ad.ad_title || "Ad Image"}
+                                        className="w-full h-48 object-cover rounded-lg mb-3"
+                                        onClick={() =>
+                                          setSelectedMedia({
+                                            type: "image",
+                                            url: mediaInfo.url!,
+                                          })
+                                        }
+                                      />
+                                    )}
                                     {/* Overlay fix: allow clicks through and disable base opacity */}
                                     <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
                                       <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -460,6 +459,7 @@ const CompetitorDetailPage: React.FC = () => {
                               return (
                                 mediaInfo &&
                                 mediaInfo.type === "carousel" &&
+                                mediaInfo.urls &&
                                 mediaInfo.urls.length > 0 && (
                                   <div className="mb-3">
                                     <div className="flex overflow-x-auto gap-2 pb-2">
@@ -511,7 +511,8 @@ const CompetitorDetailPage: React.FC = () => {
                               const mediaInfo = getMediaInfo(ad);
                               return (
                                 mediaInfo &&
-                                mediaInfo.type === "video" && (
+                                mediaInfo.type === "video" &&
+                                mediaInfo.url && (
                                   <div className="relative group cursor-pointer">
                                     <video
                                       src={mediaInfo.url}
@@ -519,7 +520,7 @@ const CompetitorDetailPage: React.FC = () => {
                                       onClick={() =>
                                         setSelectedMedia({
                                           type: "video",
-                                          url: mediaInfo.url,
+                                          url: mediaInfo.url!,
                                         })
                                       }
                                       preload="metadata"
@@ -811,7 +812,8 @@ const CompetitorDetailPage: React.FC = () => {
                               const mediaInfo = getMediaInfo(creative);
                               return (
                                 mediaInfo &&
-                                mediaInfo.type === "image" && (
+                                mediaInfo.type === "image" &&
+                                mediaInfo.url && (
                                   <div className="relative group cursor-pointer">
                                     <img
                                       src={mediaInfo.url}
@@ -820,7 +822,7 @@ const CompetitorDetailPage: React.FC = () => {
                                       onClick={() =>
                                         setSelectedMedia({
                                           type: "image",
-                                          url: mediaInfo.url,
+                                          url: mediaInfo.url!,
                                         })
                                       }
                                     />
@@ -851,6 +853,7 @@ const CompetitorDetailPage: React.FC = () => {
                               return (
                                 mediaInfo &&
                                 mediaInfo.type === "carousel" &&
+                                mediaInfo.urls &&
                                 mediaInfo.urls.length > 0 && (
                                   <div className="mb-3">
                                     <div className="flex overflow-x-auto gap-2 pb-2">
@@ -903,7 +906,8 @@ const CompetitorDetailPage: React.FC = () => {
                               const mediaInfo = getMediaInfo(creative);
                               return (
                                 mediaInfo &&
-                                mediaInfo.type === "video" && (
+                                mediaInfo.type === "video" &&
+                                mediaInfo.url && (
                                   <div className="relative group cursor-pointer">
                                     <video
                                       src={mediaInfo.url}
@@ -911,7 +915,7 @@ const CompetitorDetailPage: React.FC = () => {
                                       onClick={() =>
                                         setSelectedMedia({
                                           type: "video",
-                                          url: mediaInfo.url,
+                                          url: mediaInfo.url!,
                                         })
                                       }
                                       preload="metadata"
@@ -992,7 +996,8 @@ const CompetitorDetailPage: React.FC = () => {
                               const mediaInfo = getMediaInfo(post);
                               return (
                                 mediaInfo &&
-                                mediaInfo.type === "video" && (
+                                mediaInfo.type === "video" &&
+                                mediaInfo.url && (
                                   <div className="relative group cursor-pointer">
                                     <video
                                       src={mediaInfo.url}
@@ -1000,7 +1005,7 @@ const CompetitorDetailPage: React.FC = () => {
                                       onClick={() =>
                                         setSelectedMedia({
                                           type: "video",
-                                          url: mediaInfo.url,
+                                          url: mediaInfo.url!,
                                         })
                                       }
                                       preload="metadata"
@@ -1032,6 +1037,7 @@ const CompetitorDetailPage: React.FC = () => {
                               return (
                                 mediaInfo &&
                                 mediaInfo.type === "carousel" &&
+                                mediaInfo.urls &&
                                 mediaInfo.urls.length > 0 && (
                                   <div className="mb-3">
                                     <div className="flex overflow-x-auto gap-2 pb-2">
@@ -1520,7 +1526,7 @@ const CompetitorDetailPage: React.FC = () => {
                 if (!mediaInfo) return null;
 
                 if (mediaInfo.type === "image") {
-                  return (
+                  return mediaInfo.url ? (
                     <div className="mb-6">
                       <img
                         src={mediaInfo.url}
@@ -1528,11 +1534,11 @@ const CompetitorDetailPage: React.FC = () => {
                         className="w-full h-64 object-cover rounded-lg"
                       />
                     </div>
-                  );
+                  ) : null;
                 }
 
                 if (mediaInfo.type === "video") {
-                  return (
+                  return mediaInfo.url ? (
                     <div className="mb-6">
                       <video
                         src={mediaInfo.url}
@@ -1542,11 +1548,11 @@ const CompetitorDetailPage: React.FC = () => {
                         Your browser does not support the video tag.
                       </video>
                     </div>
-                  );
+                  ) : null;
                 }
 
                 if (mediaInfo.type === "carousel") {
-                  return (
+                  return mediaInfo.urls && mediaInfo.urls.length > 0 ? (
                     <div className="mb-6">
                       <h4 className="text-lg font-semibold text-white mb-3">
                         Carousel Images
@@ -1564,7 +1570,7 @@ const CompetitorDetailPage: React.FC = () => {
                         )}
                       </div>
                     </div>
-                  );
+                  ) : null;
                 }
 
                 return null;
@@ -1683,7 +1689,7 @@ const CompetitorDetailPage: React.FC = () => {
                 if (!mediaInfo) return null;
 
                 if (mediaInfo.type === "image") {
-                  return (
+                  return mediaInfo.url ? (
                     <div className="mb-6">
                       <img
                         src={mediaInfo.url}
@@ -1691,11 +1697,11 @@ const CompetitorDetailPage: React.FC = () => {
                         className="w-full h-64 object-cover rounded-lg"
                       />
                     </div>
-                  );
+                  ) : null;
                 }
 
                 if (mediaInfo.type === "video") {
-                  return (
+                  return mediaInfo.url ? (
                     <div className="mb-6">
                       <video
                         src={mediaInfo.url}
@@ -1705,11 +1711,11 @@ const CompetitorDetailPage: React.FC = () => {
                         Your browser does not support the video tag.
                       </video>
                     </div>
-                  );
+                  ) : null;
                 }
 
                 if (mediaInfo.type === "carousel") {
-                  return (
+                  return mediaInfo.urls && mediaInfo.urls.length > 0 ? (
                     <div className="mb-6">
                       <h4 className="text-lg font-semibold text-white mb-3">
                         Carousel Images
@@ -1727,7 +1733,7 @@ const CompetitorDetailPage: React.FC = () => {
                         )}
                       </div>
                     </div>
-                  );
+                  ) : null;
                 }
 
                 return null;

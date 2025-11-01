@@ -26,6 +26,7 @@ const DashboardSidebar: React.FC = () => {
     if (user) {
       fetchCompetitors();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchCompetitors = async () => {

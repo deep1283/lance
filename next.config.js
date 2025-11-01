@@ -210,15 +210,13 @@ const nextConfig = {
 
 
 
-  // ⚠️ SECURITY WARNING: This is DANGEROUS!
+  // ESLint configuration
 
   eslint: {
 
-    // FIXME: Remove this before production!
+    // Enable linting in production to catch security issues
 
-    // Ignoring ESLint errors can hide security issues
-
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
 
   },
 

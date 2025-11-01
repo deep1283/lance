@@ -1,10 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  getCompetitiveIntelligenceFallback,
-  getPaidAdsFallback,
-  getOrganicContentFallback,
-  getViralReelsFallback,
   getRateLimitFallback,
 } from "@/lib/ai-fallback-content";
 
@@ -183,6 +179,7 @@ export function useAIAnalysis(
       hasInitialized.current = true;
       fetchAnalysis();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [competitorId, analysisType]);
 
   return { analysis, loading, error };

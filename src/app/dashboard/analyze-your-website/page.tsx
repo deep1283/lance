@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
 import DashboardSidebar from "@/components/dashboard/Sidebar";
 import DashboardHeader from "@/components/dashboard/Header";
 import { createClient } from "@/lib/supabase/client";
@@ -11,7 +10,6 @@ const supabase = createClient();
 
 const AnalyzeYourWebsitePage: React.FC = () => {
   const { user, loading } = useAuth();
-  const router = useRouter();
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -49,7 +47,7 @@ const AnalyzeYourWebsitePage: React.FC = () => {
           table: "users",
           filter: `id=eq.${user.id}`,
         },
-        (payload: any) => {
+        (payload: unknown) => {
           const nextApproved = (
             payload as unknown as { new?: { is_approved?: boolean } }
           ).new?.is_approved;

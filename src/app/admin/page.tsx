@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
@@ -77,7 +77,7 @@ const AdminDashboard: React.FC = () => {
 
       // Get unique user IDs from analyses
       const userIds = [
-        ...new Set(analysesData?.map((a: any) => a.user_id) || []),
+        ...new Set(analysesData?.map((a: { user_id: string }) => a.user_id) || []),
       ];
 
       // Fetch user emails
@@ -94,8 +94,6 @@ const AdminDashboard: React.FC = () => {
       userEmails?.forEach((user) => {
         emailMap.set(user.id, user.email);
       });
-
-      const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000;
 
       const userMap = new Map<string, UserAnalysis>();
 

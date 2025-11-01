@@ -5,13 +5,7 @@
  * without requiring user interaction or page refreshes.
  */
 
-import { createClient } from "@supabase/supabase-js";
-
-// Create Supabase client with service role key for server-side operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Import removed - supabase client not needed for current implementation
 
 interface RefreshJob {
   competitorId: string;

@@ -69,7 +69,7 @@ const AIAnalysisDisplay: React.FC<AIAnalysisDisplayProps> = ({
     const elements: React.ReactNode[] = [];
     let key = 0;
 
-    lines.forEach((line, index) => {
+    lines.forEach((line) => {
       const trimmedLine = line.trim();
 
       if (!trimmedLine) {

@@ -103,7 +103,7 @@ export async function POST(req: Request) {
     }
 
     // First, let's see what's actually in the database
-    const { data: allAnalyses, error: allAnalysesError } = await supabase
+    await supabase
       .from("ai_analyses")
       .select("*")
       .eq("user_id", user.id);

@@ -16,7 +16,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Validate URL format
 try {
   new URL(supabaseUrl);
-} catch (error) {
+} catch {
   throw new Error(`❌ Invalid NEXT_PUBLIC_SUPABASE_URL format: ${supabaseUrl}`);
 }
 
@@ -48,4 +48,5 @@ export const supabase =
     : (null as unknown as SupabaseClient);
 
 // Export types for use throughout the app
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Database = any; // Replace with your generated types from Supabase CLI

@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import DashboardSidebar from "@/components/dashboard/Sidebar";
 import DashboardHeader from "@/components/dashboard/Header";
@@ -32,10 +31,9 @@ const DashboardCharts = dynamic(() => import("@/components/dashboard/Charts"), {
 
 const DashboardPage: React.FC = () => {
   const { user, loading } = useAuth();
-  const router = useRouter();
   const [competitors, setCompetitors] = useState<CompetitorWithStats[]>([]);
   const [dashboardLoading, setDashboardLoading] = useState(true);
-  const [didYouKnow, setDidYouKnow] = useState<any[]>([]);
+  const [didYouKnow, setDidYouKnow] = useState<unknown[]>([]);
 
   // AI analysis removed from main dashboard
 
@@ -46,6 +44,7 @@ const DashboardPage: React.FC = () => {
       fetchCompetitorsWithStats();
       fetchDidYouKnow();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Guard: if approval revoked, redirect to approval page immediately
@@ -607,25 +606,28 @@ const DashboardPage: React.FC = () => {
                 </h2>
               </div>
               <div className="grid grid-cols-1 gap-4">
-                {didYouKnow.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1f1f1f] hover:border-yellow-500/30 transition-all duration-300 w-full"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-yellow-600 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <span className="text-white font-bold text-sm">
-                          {index + 1}
-                        </span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-gray-100 text-lg md:text-xl font-semibold leading-relaxed">
-                          {item.note}
-                        </p>
+                {didYouKnow.map((item, index) => {
+                  const didYouKnowItem = item as { id: string; note: string };
+                  return (
+                    <div
+                      key={didYouKnowItem.id}
+                      className="bg-[#0a0a0a] rounded-lg p-5 border border-[#1f1f1f] hover:border-yellow-500/30 transition-all duration-300 w-full"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-yellow-600 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-bold text-sm">
+                            {index + 1}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-gray-100 text-lg md:text-xl font-semibold leading-relaxed">
+                            {didYouKnowItem.note}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
