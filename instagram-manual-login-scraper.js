@@ -1,4 +1,4 @@
-// instagram-manual-login-scraper.js - Manual Login Version
+// instagram-manual-login-scraper.js - COMPLETE VERSION with Reels
 
 // For educational/research use only
 
@@ -15,13 +15,10 @@ puppeteer.use(StealthPlugin());
 const CONFIG = {
   TOTAL_POSTS: 15,
   REELS_RATIO: 0.6, // 60% reels, 40% images
-  SCROLL_COUNT: 5,
+  SCROLL_COUNT: 10,
   PAGE_TIMEOUT: 60000,
   HEADLESS: false, // MUST be false for manual login
-  
-  LOGIN_TIMEOUT: 180000, // 3 minutes to log in manually
-  
-  // Session persistence
+  LOGIN_TIMEOUT: 180000, // 3 minutes
   SESSION_FILE: path.join(__dirname, 'instagram-session.json'),
 };
 
@@ -38,12 +35,7 @@ process.on('SIGINT', async () => {
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 function sanitizeKeyword(k) {
-  return (k || "")
-    .toString()
-    .replace(/[^a-zA-Z0-9_\s]/g, "")
-    .trim()
-    .replace(/\s+/g, "_")
-    .slice(0, 60) || "default";
+  return (k || "").toString().replace(/[^a-zA-Z0-9_\s]/g, "").trim().replace(/\s+/g, "_").slice(0, 60) || "default";
 }
 
 function sanitizeURL(url) {
@@ -60,10 +52,7 @@ function createCSV(urls, keyword) {
   const filename = `instagram_${sanitizedKeyword}_${timestamp}.csv`;
   
   const header = "URL\n";
-  const rows = urls
-    .map(item => sanitizeURL(typeof item === 'string' ? item : item.url))
-    .filter(Boolean)
-    .join("\n");
+  const rows = urls.map(item => sanitizeURL(typeof item === 'string' ? item : item.url)).filter(Boolean).join("\n");
   
   if (!rows) throw new Error('No valid URLs after sanitization');
   
@@ -77,7 +66,7 @@ async function saveSession(page) {
   try {
     const cookies = await page.cookies();
     fs.writeFileSync(CONFIG.SESSION_FILE, JSON.stringify(cookies, null, 2));
-    console.log('   ✅ Session saved to instagram-session.json');
+    console.log('   ✅ Session saved');
   } catch (error) {
     console.log('   ⚠️ Failed to save session:', error.message);
   }
@@ -88,7 +77,7 @@ async function loadSession(page) {
     if (fs.existsSync(CONFIG.SESSION_FILE)) {
       const cookies = JSON.parse(fs.readFileSync(CONFIG.SESSION_FILE, 'utf8'));
       await page.setCookie(...cookies);
-      console.log('   ✅ Session loaded from file');
+      console.log('   ✅ Session loaded');
       return true;
     }
   } catch (error) {
@@ -100,34 +89,20 @@ async function loadSession(page) {
 async function isLoggedIn(page) {
   try {
     return await page.evaluate(() => {
-      // Multiple indicators that user is logged in
       const loggedInIndicators = [
-        // Navigation elements only visible when logged in
-        'a[href="/"]', // Home link in nav
-        'svg[aria-label="Home"]',
-        'svg[aria-label="Search"]',
-        'svg[aria-label="Explore"]',
-        'svg[aria-label="Reels"]',
-        'svg[aria-label="Messages"]',
-        'svg[aria-label="Notifications"]',
-        'svg[aria-label="Create"]',
-        // Profile elements
-        'img[alt*="profile picture"]',
-        'a[href*="/accounts/edit/"]',
+        'svg[aria-label="Home"]', 'svg[aria-label="Search"]', 'svg[aria-label="Explore"]',
+        'svg[aria-label="Reels"]', 'svg[aria-label="Messages"]', 'svg[aria-label="Notifications"]',
+        'img[alt*="profile picture"]', 'a[href*="/accounts/edit/"]',
       ];
       
-      // Check if any logged-in indicators are present
       for (const selector of loggedInIndicators) {
         if (document.querySelector(selector)) return true;
       }
       
-      // If we see the login form, definitely not logged in
-      if (document.querySelector('input[name="username"]') && 
-          document.querySelector('input[name="password"]')) {
+      if (document.querySelector('input[name="username"]') && document.querySelector('input[name="password"]')) {
         return false;
       }
       
-      // If URL is not login page and we don't see login form, probably logged in
       return !window.location.pathname.includes('/accounts/login');
     });
   } catch {
@@ -142,40 +117,87 @@ async function waitForManualLogin(page) {
   console.log('🔐 MANUAL LOGIN REQUIRED');
   console.log('='.repeat(60));
   console.log('\n📍 Instructions:');
-  console.log('   1. The browser window should now be open');
-  console.log('   2. Log in to Instagram using your credentials');
-  console.log('   3. Complete any 2FA if prompted');
-  console.log('   4. Click "Not Now" on "Save Login Info" prompt');
-  console.log('   5. Click "Not Now" on notifications prompt');
-  console.log('   6. Wait on the Instagram home page');
-  console.log('\n⏳ The scraper will auto-detect when you\'re logged in...\n');
+  console.log('   1. Browser window is now open');
+  console.log('   2. Log in to Instagram');
+  console.log('   3. Complete 2FA if needed');
+  console.log('   4. Click "Not Now" on popups');
+  console.log('   5. Wait on home page');
+  console.log('\n⏳ Scraper will auto-detect login...\n');
   
   const startTime = Date.now();
   let attempts = 0;
   
   while (Date.now() - startTime < CONFIG.LOGIN_TIMEOUT) {
     attempts++;
-    
     const loggedIn = await isLoggedIn(page);
     
     if (loggedIn) {
-      console.log('\n✅ Login detected successfully!');
+      console.log('\n✅ Login detected!');
       await saveSession(page);
       return true;
     }
     
-    // Show progress every 10 seconds
     if (attempts % 2 === 0) {
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       const remaining = Math.floor((CONFIG.LOGIN_TIMEOUT - (Date.now() - startTime)) / 1000);
-      console.log(`   ⏳ Still waiting... (${elapsed}s elapsed, ${remaining}s remaining)`);
+      console.log(`   ⏳ Waiting... (${elapsed}s elapsed, ${remaining}s remaining)`);
     }
     
     await sleep(5000);
   }
   
-  console.log('\n⚠️ Login timeout reached');
+  console.log('\n⚠️ Login timeout');
   return false;
+}
+
+// ===================== EXTRACTION HELPER =====================
+
+function extractPostsFromPage() {
+  const results = [];
+  const seen = new Set();
+  const allLinks = document.querySelectorAll('a[href]');
+  
+  allLinks.forEach(link => {
+    const href = link.getAttribute('href');
+    if (href && (href.includes('/p/') || href.includes('/reel/') || href.includes('/tv/'))) {
+      const fullUrl = href.startsWith('http') ? href : `https://www.instagram.com${href}`;
+      const cleanUrl = fullUrl.split('?')[0];
+      
+      if (seen.has(cleanUrl)) return;
+      seen.add(cleanUrl);
+      
+      let engagement = 0;
+      try {
+        const parent = link.closest('article') || link.parentElement;
+        if (parent) {
+          const text = parent.innerText || '';
+          
+          const likesMatch = text.match(/([\d,]+)\s*likes?/i);
+          if (likesMatch) {
+            engagement = parseInt(likesMatch[1].replace(/,/g, ''), 10);
+          }
+          
+          const viewsMatch = text.match(/([\d,\.]+)([KMB]?)\s*views?/i);
+          if (viewsMatch) {
+            let views = parseFloat(viewsMatch[1].replace(/,/g, ''));
+            const unit = viewsMatch[2];
+            if (unit === 'K') views *= 1000;
+            if (unit === 'M') views *= 1000000;
+            if (unit === 'B') views *= 1000000000;
+            engagement = Math.max(engagement, views);
+          }
+        }
+      } catch {}
+      
+      results.push({
+        url: cleanUrl,
+        engagement: engagement,
+        isReel: cleanUrl.includes('/reel/') || cleanUrl.includes('/tv/')
+      });
+    }
+  });
+  
+  return results;
 }
 
 // ===================== SCRAPER =====================
@@ -185,200 +207,122 @@ async function scrapeInstagramSearch(keyword, totalWanted) {
   
   const browser = await puppeteer.launch({
     headless: CONFIG.HEADLESS,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--window-size=1920,1080',
-    ],
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--window-size=1920,1080'],
   });
   
   globalBrowser = browser;
   
   try {
     const page = await browser.newPage();
-    
-    await page.setUserAgent(
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    );
-    
+    await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     await page.setViewport({ width: 1920, height: 1080 });
     
     console.log('\n📱 Opening Instagram...');
-    
-    // Try to load existing session first
-    const sessionLoaded = await loadSession(page);
-    
-    await page.goto('https://www.instagram.com/', {
-      waitUntil: 'domcontentloaded',
-      timeout: CONFIG.PAGE_TIMEOUT,
-    });
-    
+    await loadSession(page);
+    await page.goto('https://www.instagram.com/', { waitUntil: 'domcontentloaded', timeout: CONFIG.PAGE_TIMEOUT });
     await sleep(4000);
     
-    // Check if already logged in from saved session
     const alreadyLoggedIn = await isLoggedIn(page);
     
     if (alreadyLoggedIn) {
       console.log('   ✅ Already logged in (session restored)');
     } else {
-      console.log('   ℹ️  Not logged in - manual login required');
-      
-      // Wait for manual login
+      console.log('   ℹ️  Not logged in');
       const loginSuccess = await waitForManualLogin(page);
-      
       if (!loginSuccess) {
-        console.log('\n❌ Login failed or timeout - cannot continue');
+        console.log('\n❌ Login failed');
         return [];
       }
     }
     
-    // Extra wait after login to ensure everything loads
-    console.log('\n⏳ Waiting for page to stabilize...');
+    console.log('\n⏳ Page stabilizing...');
     await sleep(3000);
     
-    // Dismiss any remaining popups
-    console.log('   → Checking for popups...');
+    // Dismiss popups
     try {
       const buttons = await page.$$('button');
       for (const button of buttons) {
         const text = await page.evaluate(el => el.textContent, button);
-        if (text && (text.includes('Not Now') || text.includes('Not now'))) {
+        if (text && text.includes('Not Now')) {
           await button.click();
           await sleep(2000);
-          console.log('   ✓ Dismissed popup');
           break;
         }
       }
     } catch {}
     
-    // Navigate to search/explore
-    console.log(`\n🔎 Searching for: "${keyword}"`);
-    
-    // Use Instagram's search URL directly
+    // ========== DESKTOP SCRAPE (Images) ==========
+    console.log(`\n🖥️  DESKTOP SCRAPE (Images)`);
     const searchURL = `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(keyword)}`;
-    console.log(`   → Navigating to: ${searchURL}`);
+    console.log(`   → ${searchURL}`);
     
-    await page.goto(searchURL, {
-      waitUntil: 'domcontentloaded',
-      timeout: CONFIG.PAGE_TIMEOUT,
-    });
-    
+    await page.goto(searchURL, { waitUntil: 'domcontentloaded', timeout: CONFIG.PAGE_TIMEOUT });
     await sleep(4000);
     
-    // Click on "Top" or first tab if visible
-    try {
-      const links = await page.$$('a, div[role="tab"]');
-      for (const link of links) {
-        const text = await page.evaluate(el => el.textContent, link);
-        if (text && (text.trim() === 'Top' || text.trim() === 'Recent')) {
-          console.log(`   ✓ Clicking "${text}" tab`);
-          await link.click();
-          await sleep(3000);
-          break;
-        }
-      }
-    } catch {}
-    
-    console.log('   → Scrolling to load posts...');
-    
-    // Scroll to load content
+    console.log('   → Scrolling...');
     for (let i = 0; i < CONFIG.SCROLL_COUNT; i++) {
-      await page.evaluate(() => {
-        window.scrollBy({
-          top: Math.random() * 500 + 500,
-          behavior: 'smooth'
-        });
-      });
+      await page.evaluate(() => window.scrollBy({ top: Math.random() * 500 + 500, behavior: 'smooth' }));
       await sleep(3000);
-      console.log(`      Scroll ${i + 1}/${CONFIG.SCROLL_COUNT}`);
+      console.log(`      ${i + 1}/${CONFIG.SCROLL_COUNT}`);
     }
     
-    // Scroll back up to capture early posts
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await sleep(2000);
+    console.log('   → Extracting...');
+    const desktopPosts = await page.evaluate(extractPostsFromPage);
+    console.log(`   ✅ ${desktopPosts.length} posts`);
     
-    // One more scroll down
-    await page.evaluate(() => window.scrollBy(0, 1000));
-    await sleep(2000);
+    // ========== MOBILE SCRAPE (Mixed) ==========
+    console.log(`\n📱 MOBILE SCRAPE (Reels)`);
+    await page.setViewport({ width: 375, height: 812 });
+    await page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1');
     
-    console.log('\n📊 Extracting URLs...');
+    const exploreURL = `https://www.instagram.com/explore/tags/${encodeURIComponent(keyword)}/`;
+    console.log(`   → ${exploreURL}`);
     
-    // Extract post URLs
-    const posts = await page.evaluate(() => {
-      const results = [];
-      const seen = new Set();
-      
-      // Find all links
-      const allLinks = document.querySelectorAll('a[href]');
-      
-      allLinks.forEach(link => {
-        const href = link.getAttribute('href');
-        
-        // Filter for post/reel URLs
-        if (href && (href.includes('/p/') || href.includes('/reel/') || href.includes('/tv/'))) {
-          const fullUrl = href.startsWith('http') 
-            ? href 
-            : `https://www.instagram.com${href}`;
-          const cleanUrl = fullUrl.split('?')[0];
-          
-          if (seen.has(cleanUrl)) return;
-          seen.add(cleanUrl);
-          
-          // Try to get engagement for sorting
-          let engagement = 0;
-          try {
-            const parent = link.closest('article') || link.parentElement;
-            if (parent) {
-              const text = parent.innerText || '';
-              
-              // Extract likes
-              const likesMatch = text.match(/([\d,]+)\s*likes?/i);
-              if (likesMatch) {
-                engagement = parseInt(likesMatch[1].replace(/,/g, ''), 10);
-              }
-              
-              // Extract views (reels)
-              const viewsMatch = text.match(/([\d,\.]+)([KMB]?)\s*views?/i);
-              if (viewsMatch) {
-                let views = parseFloat(viewsMatch[1].replace(/,/g, ''));
-                const unit = viewsMatch[2];
-                if (unit === 'K') views *= 1000;
-                if (unit === 'M') views *= 1000000;
-                if (unit === 'B') views *= 1000000000;
-                engagement = Math.max(engagement, views);
-              }
-            }
-          } catch {}
-          
-          results.push({
-            url: cleanUrl,
-            engagement: engagement,
-            isReel: cleanUrl.includes('/reel/') || cleanUrl.includes('/tv/')
-          });
-        }
-      });
-      
-      return results;
-    });
+    await page.goto(exploreURL, { waitUntil: 'domcontentloaded', timeout: CONFIG.PAGE_TIMEOUT });
+    await sleep(4000);
     
-    console.log(`   ✅ Found ${posts.length} posts`);
+    console.log('   → Scrolling...');
+    for (let i = 0; i < CONFIG.SCROLL_COUNT; i++) {
+      await page.evaluate(() => window.scrollBy({ top: Math.random() * 400 + 400, behavior: 'smooth' }));
+      await sleep(2500);
+      console.log(`      ${i + 1}/${CONFIG.SCROLL_COUNT}`);
+    }
     
-    if (posts.length === 0) {
-      console.log('\n❌ No posts found!');
-      console.log('💡 Possible reasons:');
-      console.log('   • Keyword has no results');
-      console.log('   • Search page structure changed');
-      console.log('   • Try a different keyword');
+    console.log('   → Extracting...');
+    const mobilePosts = await page.evaluate(extractPostsFromPage);
+    console.log(`   ✅ ${mobilePosts.length} posts`);
+    
+    // ========== HASHTAG REELS ==========
+    console.log(`\n🎬 HASHTAG REELS PAGE`);
+    const reelsURL = `https://www.instagram.com/explore/tags/${encodeURIComponent(keyword)}/reels/`;
+    console.log(`   → ${reelsURL}`);
+    
+    await page.goto(reelsURL, { waitUntil: 'domcontentloaded', timeout: CONFIG.PAGE_TIMEOUT });
+    await sleep(4000);
+    
+    console.log('   → Scrolling...');
+    for (let i = 0; i < 3; i++) {
+      await page.evaluate(() => window.scrollBy({ top: Math.random() * 400 + 400, behavior: 'smooth' }));
+      await sleep(2500);
+      console.log(`      ${i + 1}/3`);
+    }
+    
+    console.log('   → Extracting...');
+    const reelsPosts = await page.evaluate(extractPostsFromPage);
+    console.log(`   ✅ ${reelsPosts.length} reels`);
+    
+    // ========== COMBINE & PROCESS ==========
+    const allPosts = [...desktopPosts, ...mobilePosts, ...reelsPosts];
+    
+    if (allPosts.length === 0) {
+      console.log('\n❌ No posts found');
       return [];
     }
     
-    // Process results
-    console.log(`\n📊 Processing results...`);
+    console.log(`\n📊 Processing ${allPosts.length} posts...`);
     
-    const uniquePosts = Array.from(
-      new Map(posts.map(p => [p.url, p])).values()
-    );
+    const uniquePosts = Array.from(new Map(allPosts.map(p => [p.url, p])).values());
+    console.log(`   • Unique: ${uniquePosts.length}`);
     
     const reels = uniquePosts.filter(p => p.isReel);
     const regularPosts = uniquePosts.filter(p => !p.isReel);
@@ -386,7 +330,11 @@ async function scrapeInstagramSearch(keyword, totalWanted) {
     console.log(`   • Reels: ${reels.length}`);
     console.log(`   • Posts: ${regularPosts.length}`);
     
-    // Sort by engagement (highest first)
+    if (reels.length === 0) {
+      console.log('\n⚠️  No reels found - unusual!');
+    }
+    
+    // Sort by engagement
     reels.sort((a, b) => b.engagement - a.engagement);
     regularPosts.sort((a, b) => b.engagement - a.engagement);
     
@@ -394,21 +342,16 @@ async function scrapeInstagramSearch(keyword, totalWanted) {
     const reelsTarget = Math.round(totalWanted * CONFIG.REELS_RATIO);
     const postsTarget = totalWanted - reelsTarget;
     
-    console.log(`\n🎯 Selecting top posts:`);
-    console.log(`   • Target reels: ${reelsTarget} (${Math.round(CONFIG.REELS_RATIO * 100)}%)`);
-    console.log(`   • Target posts: ${postsTarget} (${Math.round((1 - CONFIG.REELS_RATIO) * 100)}%)`);
+    console.log(`\n🎯 Selecting:`);
+    console.log(`   • ${reelsTarget} reels (${Math.round(CONFIG.REELS_RATIO * 100)}%)`);
+    console.log(`   • ${postsTarget} posts (${Math.round((1 - CONFIG.REELS_RATIO) * 100)}%)`);
     
     // Build final list
-    const finalPosts = [
-      ...reels.slice(0, reelsTarget),
-      ...regularPosts.slice(0, postsTarget),
-    ];
+    const finalPosts = [...reels.slice(0, reelsTarget), ...regularPosts.slice(0, postsTarget)];
     
-    // Fill remaining slots if needed
+    // Fill remaining
     if (finalPosts.length < totalWanted) {
-      const remaining = uniquePosts
-        .filter(p => !finalPosts.includes(p))
-        .slice(0, totalWanted - finalPosts.length);
+      const remaining = uniquePosts.filter(p => !finalPosts.includes(p)).slice(0, totalWanted - finalPosts.length);
       finalPosts.push(...remaining);
     }
     
@@ -428,43 +371,30 @@ async function scrapeInstagramSearch(keyword, totalWanted) {
 // ===================== MAIN =====================
 (async function main() {
   console.log('╔════════════════════════════════════════════════╗');
-  console.log('║  Instagram Manual Login Scraper                ║');
-  console.log('║  ✓ Manual Login (You log in yourself)         ║');
+  console.log('║  Instagram Manual Login Scraper v2.0          ║');
+  console.log('║  ✓ 3-Source Scraping (Desktop+Mobile+Reels)   ║');
+  console.log('║  ✓ Manual Login (Safe & Reliable)             ║');
   console.log('║  ✓ Session Persistence                         ║');
-  console.log('║  ✓ Top Posts by Engagement                     ║');
-  console.log('║  For Educational/Research Use Only             ║');
   console.log('╚════════════════════════════════════════════════╝');
   
   const keyword = process.argv[2];
   const totalArg = parseInt(process.argv[3], 10);
   const total = Number.isFinite(totalArg) && totalArg > 0 ? totalArg : CONFIG.TOTAL_POSTS;
   if (!keyword) {
-    console.log('\n❌ Missing keyword!\n');
-    console.log('Usage: node instagram-manual-login-scraper.js <keyword> [total]');
+    console.log('\nUsage: node instagram-manual-login-scraper.js <keyword> [total]');
     console.log('\nExamples:');
     console.log('  node instagram-manual-login-scraper.js fitness');
-    console.log('  node instagram-manual-login-scraper.js "workout tips" 20');
-    console.log('\n📌 How it works:');
-    console.log('  1. Browser opens automatically');
-    console.log('  2. You log in manually (safe!)');
-    console.log('  3. Session is saved for next time');
-    console.log('  4. Scraper extracts top post URLs');
-    console.log('\n⚠️  IMPORTANT: Keep HEADLESS: false for manual login\n');
+    console.log('  node instagram-manual-login-scraper.js "workout" 20\n');
     process.exit(1);
   }
   
-  console.log(`\n📌 Search term: "${keyword}"`);
+  console.log(`\n📌 Keyword: "${keyword}"`);
   console.log(`📌 Target: ${total} URLs (${Math.round(CONFIG.REELS_RATIO * 100)}% reels)`);
-  console.log(`📌 Mode: Manual login`);
   
   const posts = await scrapeInstagramSearch(keyword, total);
   
   if (posts.length === 0) {
-    console.log('\n❌ No URLs extracted');
-    console.log('\n💡 Tips:');
-    console.log('  • Try a different keyword');
-    console.log('  • Delete instagram-session.json and retry');
-    console.log('  • Check if keyword has results on Instagram');
+    console.log('\n❌ Failed\n');
     process.exit(1);
   }
   
@@ -476,20 +406,14 @@ async function scrapeInstagramSearch(keyword, totalWanted) {
     console.log('\n' + '='.repeat(60));
     console.log('✅ SUCCESS!');
     console.log('='.repeat(60));
-    console.log(`📄 File: ${filename}`);
-    console.log(`📊 Total URLs: ${posts.length}`);
-    console.log(`   • Reels: ${reelCount} (${Math.round(reelCount/posts.length*100)}%)`);
-    console.log(`   • Posts: ${postCount} (${Math.round(postCount/posts.length*100)}%)`);
-    console.log('\n💡 Your session is saved!');
-    console.log('   Next run will skip manual login ⚡');
-    console.log('\n💡 Tips:');
-    console.log('  • Wait 30+ minutes before next scrape');
-    console.log('  • Session file: instagram-session.json');
-    console.log('  • If login fails, delete session file\n');
+    console.log(`📄 ${filename}`);
+    console.log(`📊 ${posts.length} URLs`);
+    console.log(`   • ${reelCount} reels (${Math.round(reelCount/posts.length*100)}%)`);
+    console.log(`   • ${postCount} posts (${Math.round(postCount/posts.length*100)}%)`);
+    console.log('\n💡 Session saved - next run will be faster!\n');
     
   } catch (error) {
-    console.error(`\n❌ Save error: ${error.message}\n`);
+    console.error(`\n❌ ${error.message}\n`);
     process.exit(1);
   }
 })();
-
