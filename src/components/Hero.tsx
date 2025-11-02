@@ -16,7 +16,7 @@ const ScrollTiltDashboard: React.FC = () => {
     offset: ["start end", "end start"],
   });
 
-  const rotateX = useSpring(useTransform(scrollYProgress, [0, 1], [-70, 0]), {
+  const rotateX = useSpring(useTransform(scrollYProgress, [0, 1], [-50, 0]), {
     stiffness: 100,
     damping: 20,
   });
