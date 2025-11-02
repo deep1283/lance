@@ -1,64 +1,91 @@
-# Instagram Hashtag Scraper
+# Instagram Manual Login Scraper
 
 ## ✅ What's Ready
 
-- ✅ Puppeteer installed
-- ✅ Scraper script created (`instagram-scraper.js`)
-- ✅ **Mobile + Web scraping** (best of both worlds)
-- ✅ Auto-login with credentials
-- ✅ Reel prioritization
-- ✅ Full captions with hashtags
-- ✅ CSV output format you need
-- ✅ Top 10 results (was 5)
+- ✅ Puppeteer-extra with Stealth Plugin installed
+- ✅ Manual login scraper script created (`instagram-manual-login-scraper.js`)
+- ✅ **Session Management** (automatic persistence)
+- ✅ Reel prioritization (60% reels, 40% images)
+- ✅ CSV output format
+- ✅ Engagement-based sorting
 - ✅ Error handling & reliability
 
-## 🎯 To Use It
+## 🎯 How It Works
 
-### Step 1: Create Instagram Account
-- Business account for scraping
-- Keep it active
+**Key Feature:** Manual login (YOU log in yourself) - this is safer and more reliable!
 
-### Step 2: Add Credentials
-Create `.env.local` in `lance/` folder:
-```
-INSTAGRAM_EMAIL=your_email@gmail.com
-INSTAGRAM_PASSWORD=your_password
-INSTAGRAM_USERNAME=your_username
-```
+1. Browser opens automatically
+2. You log in to Instagram manually
+3. Session is saved automatically
+4. Scraper navigates to search page
+5. Extracts top post URLs
+6. Saves to CSV
 
-### Step 3: Run
+**No credentials needed** - you just log in when prompted!
+
+## 🚀 Quick Start
+
+### Step 1: Run
+
 ```bash
 cd lance
-node instagram-scraper.js jewellery
+node instagram-manual-login-scraper.js jewellery
 ```
 
-Output: `jewellery_2025-01-16.csv`
+Or specify number of posts:
+
+```bash
+node instagram-manual-login-scraper.js jewellery 20
+```
+
+### Step 2: Manual Login
+
+When the browser opens:
+1. Log in to Instagram with your credentials
+2. Complete any 2FA if prompted
+3. Click "Not Now" on "Save Login Info" prompt
+4. Click "Not Now" on notifications prompt
+5. Wait on the Instagram home page
+
+The scraper will automatically detect when you're logged in!
+
+### Step 3: Output
+
+The scraper creates a CSV file:
+```
+instagram_jewellery_2025-11-02T19-45-00.csv
+```
 
 ## 📊 What You Get
 
-CSV with columns:
-- Hashtag
-- url  
-- likes (empty - fill manually)
-- comments (empty - fill manually)
-- Caption (empty - fill manually)
+CSV with column:
+- `URL` - Sorted by engagement (likes/views)
 
-**Top 10 posts** (reels first, then carousels)
+**Default: 15 URLs** (60% reels, 40% images)
 
 **Note:** Only URLs are extracted automatically. You fill in likes, comments, and captions manually by visiting each URL.
 
-## ⚠️ Important
+## ⚠️ Important Notes
 
-1. First run downloads Chromium (~300MB) - takes 2-3 mins
-2. Don't run too frequently (Instagram rate limits)
-3. Use a real, active Instagram account
-4. Review CSV before uploading to Supabase
+1. **Keep HEADLESS: false** - Required for manual login
+2. **Don't run too frequently** - Wait 30+ minutes between scrapes
+3. **Session persistence** - Next run will skip manual login!
+4. **Delete session** - Remove `instagram-session.json` if login issues
+5. **Use VPN** - Recommended for safety
 
-## 🚀 That's It!
+## 💡 Tips
 
-**Scrapes both mobile + web** → Deduplicates → Reels prioritized → Top 10 URLs → CSV → You fill manually → Upload to Supabase
+- **First run:** Log in manually (~3 minutes max)
+- **Next runs:** Automatic (session saved!)
+- **Session file:** `instagram-session.json`
+- **Wait between runs:** 30+ minutes minimum
+- **VPN:** Use for extra safety
 
-Takes ~40-60 seconds (no detail fetching)
+## 🔄 Session Management
+
+- **First run:** Manual login required
+- **Subsequent runs:** Uses saved session (faster!)
+- **Delete session:** Remove `instagram-session.json` file
+- **Login issues:** Delete session file and retry
 
 See `SCRAPER_SETUP.md` for detailed troubleshooting.
-
