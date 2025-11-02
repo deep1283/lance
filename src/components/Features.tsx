@@ -3,8 +3,8 @@ import React from "react";
 import Head from "next/head";
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
+import Particles from "./Particles";
 
-import bgimage from "../../public/assets/bgimage.jpg";
 import creative from "../../public/assets/creative.jpg";
 import seo from "../../public/assets/seo.jpg";
 import trends from "../../public/assets/trends.jpg";
@@ -35,13 +35,20 @@ const Features: React.FC = () => {
         <meta name="robots" content="index, follow" />
       </Head>
 
-      <div
-        className="h-full bg-cover bg-center py-10 sm:py-20 px-4 sm:px-0"
-        style={{
-          backgroundImage: `url(${bgimage.src})`,
-        }}
-      >
-        <div className="flex flex-col space-y-16 sm:space-y-24">
+      <div className="relative h-full py-10 sm:py-20 px-4 sm:px-0 bg-black">
+        <div className="absolute inset-0">
+          <Particles
+            particleColors={["#ffffff", "#ffffff"]}
+            particleCount={200}
+            particleSpread={10}
+            speed={0.1}
+            particleBaseSize={100}
+            moveParticlesOnHover={true}
+            alphaParticles={false}
+            disableRotation={false}
+          />
+        </div>
+        <div className="relative z-10 flex flex-col space-y-16 sm:space-y-24">
           {/* Creative Section */}
           <motion.section
             className="flex flex-col md:flex-row justify-around items-center"
