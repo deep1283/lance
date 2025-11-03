@@ -87,6 +87,7 @@ const AnimatedDashboard: React.FC<{
           fill
           className="object-contain"
           quality={85}
+          sizes="(max-width: 768px) 100vw, 50vw"
         />
       </ElectricBorder>
     </motion.div>
@@ -168,7 +169,7 @@ const Hero: React.FC = () => {
       </div>
 
       {/* Dashboard Section */}
-      <section className="w-full py-8 sm:py-12 md:py-16 bg-black flex flex-col items-center justify-center px-4">
+      <section className="relative w-full py-8 sm:py-12 md:py-16 bg-black flex flex-col items-center justify-center px-4">
         <ScrollTiltDashboard />
         <div className="w-full max-w-7xl mt-8 sm:mt-12 md:mt-16 lg:mt-20 grid grid-cols-1 md:grid-cols-2 gap-6">
           <AnimatedDashboard
