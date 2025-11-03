@@ -270,7 +270,7 @@ const StrategyLabPage: React.FC = () => {
                                           </div>
                                         </div>
                                       </div>
-                                    ) : p.post_type === "carousel" ? (
+                                    ) : p.post_type === "carousel" || p.media_url.includes(",") ? (
                                       <div className="w-full h-48 rounded mb-3 overflow-hidden">
                                         <div className="flex space-x-1 overflow-x-auto scrollbar-hide">
                                           {p.media_url
@@ -576,6 +576,7 @@ const StrategyLabPage: React.FC = () => {
                 <div className="flex justify-center">
                   {(() => {
                     const creative = selectedCreative as { post_type?: string; media_url?: string; caption?: string; likes_count?: number; views_count?: number; comments_count?: number };
+                    const isCarousel = creative.post_type === "carousel" || (creative.media_url && creative.media_url.includes(","));
                     if (creative.post_type === "reel") {
                       return (
                         <video
@@ -585,7 +586,7 @@ const StrategyLabPage: React.FC = () => {
                           autoPlay
                         />
                       );
-                    } else if (creative.post_type === "carousel") {
+                    } else if (isCarousel) {
                       return (
                         <div className="max-w-full">
                           <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
