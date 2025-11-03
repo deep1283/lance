@@ -251,8 +251,8 @@ async function scrapeInstagramSearch(keyword, totalWanted) {
       }
     } catch {}
     
-    // ========== DESKTOP SCRAPE (Images) ==========
-    console.log(`\n🖥️  DESKTOP SCRAPE (Images)`);
+    // ========== DESKTOP SCRAPE ONLY ==========
+    console.log(`\n🖥️  DESKTOP SCRAPE`);
     const searchURL = `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(keyword)}`;
     console.log(`   → ${searchURL}`);
     
@@ -270,49 +270,8 @@ async function scrapeInstagramSearch(keyword, totalWanted) {
     const desktopPosts = await page.evaluate(extractPostsFromPage);
     console.log(`   ✅ ${desktopPosts.length} posts`);
     
-    // ========== MOBILE SCRAPE (Mixed) ==========
-    console.log(`\n📱 MOBILE SCRAPE (Reels)`);
-    await page.setViewport({ width: 375, height: 812 });
-    await page.setUserAgent('Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1');
-    
-    const exploreURL = `https://www.instagram.com/explore/tags/${encodeURIComponent(keyword)}/`;
-    console.log(`   → ${exploreURL}`);
-    
-    await page.goto(exploreURL, { waitUntil: 'domcontentloaded', timeout: CONFIG.PAGE_TIMEOUT });
-    await sleep(4000);
-    
-    console.log('   → Scrolling...');
-    for (let i = 0; i < CONFIG.SCROLL_COUNT; i++) {
-      await page.evaluate(() => window.scrollBy({ top: Math.random() * 400 + 400, behavior: 'smooth' }));
-      await sleep(2500);
-      console.log(`      ${i + 1}/${CONFIG.SCROLL_COUNT}`);
-    }
-    
-    console.log('   → Extracting...');
-    const mobilePosts = await page.evaluate(extractPostsFromPage);
-    console.log(`   ✅ ${mobilePosts.length} posts`);
-    
-    // ========== HASHTAG REELS ==========
-    console.log(`\n🎬 HASHTAG REELS PAGE`);
-    const reelsURL = `https://www.instagram.com/explore/tags/${encodeURIComponent(keyword)}/reels/`;
-    console.log(`   → ${reelsURL}`);
-    
-    await page.goto(reelsURL, { waitUntil: 'domcontentloaded', timeout: CONFIG.PAGE_TIMEOUT });
-    await sleep(4000);
-    
-    console.log('   → Scrolling...');
-    for (let i = 0; i < 3; i++) {
-      await page.evaluate(() => window.scrollBy({ top: Math.random() * 400 + 400, behavior: 'smooth' }));
-      await sleep(2500);
-      console.log(`      ${i + 1}/3`);
-    }
-    
-    console.log('   → Extracting...');
-    const reelsPosts = await page.evaluate(extractPostsFromPage);
-    console.log(`   ✅ ${reelsPosts.length} reels`);
-    
-    // ========== COMBINE & PROCESS ==========
-    const allPosts = [...desktopPosts, ...mobilePosts, ...reelsPosts];
+    // ========== PROCESS DESKTOP POSTS ONLY ==========
+    const allPosts = desktopPosts;
     
     if (allPosts.length === 0) {
       console.log('\n❌ No posts found');
@@ -324,38 +283,16 @@ async function scrapeInstagramSearch(keyword, totalWanted) {
     const uniquePosts = Array.from(new Map(allPosts.map(p => [p.url, p])).values());
     console.log(`   • Unique: ${uniquePosts.length}`);
     
-    const reels = uniquePosts.filter(p => p.isReel);
-    const regularPosts = uniquePosts.filter(p => !p.isReel);
+    const reelsCount = uniquePosts.filter(p => p.isReel).length;
+    const postsCount = uniquePosts.length - reelsCount;
     
-    console.log(`   • Reels: ${reels.length}`);
-    console.log(`   • Posts: ${regularPosts.length}`);
+    console.log(`   • Reels: ${reelsCount}`);
+    console.log(`   • Posts: ${postsCount}`);
     
-    if (reels.length === 0) {
-      console.log('\n⚠️  No reels found - unusual!');
-    }
+    // Return first N posts (as they appear)
+    console.log(`\n🎯 Selecting first ${totalWanted} posts...`);
     
-    // Sort by engagement
-    reels.sort((a, b) => b.engagement - a.engagement);
-    regularPosts.sort((a, b) => b.engagement - a.engagement);
-    
-    // Calculate targets
-    const reelsTarget = Math.round(totalWanted * CONFIG.REELS_RATIO);
-    const postsTarget = totalWanted - reelsTarget;
-    
-    console.log(`\n🎯 Selecting:`);
-    console.log(`   • ${reelsTarget} reels (${Math.round(CONFIG.REELS_RATIO * 100)}%)`);
-    console.log(`   • ${postsTarget} posts (${Math.round((1 - CONFIG.REELS_RATIO) * 100)}%)`);
-    
-    // Build final list
-    const finalPosts = [...reels.slice(0, reelsTarget), ...regularPosts.slice(0, postsTarget)];
-    
-    // Fill remaining
-    if (finalPosts.length < totalWanted) {
-      const remaining = uniquePosts.filter(p => !finalPosts.includes(p)).slice(0, totalWanted - finalPosts.length);
-      finalPosts.push(...remaining);
-    }
-    
-    return finalPosts.slice(0, totalWanted);
+    return uniquePosts.slice(0, totalWanted);
     
   } catch (error) {
     console.error('\n❌ Error:', error.message);
@@ -371,8 +308,8 @@ async function scrapeInstagramSearch(keyword, totalWanted) {
 // ===================== MAIN =====================
 (async function main() {
   console.log('╔════════════════════════════════════════════════╗');
-  console.log('║  Instagram Manual Login Scraper v2.0          ║');
-  console.log('║  ✓ 3-Source Scraping (Desktop+Mobile+Reels)   ║');
+  console.log('║  Instagram Desktop Scraper v2.1               ║');
+  console.log('║  ✓ Desktop Scraping Only                      ║');
   console.log('║  ✓ Manual Login (Safe & Reliable)             ║');
   console.log('║  ✓ Session Persistence                         ║');
   console.log('╚════════════════════════════════════════════════╝');
@@ -389,7 +326,7 @@ async function scrapeInstagramSearch(keyword, totalWanted) {
   }
   
   console.log(`\n📌 Keyword: "${keyword}"`);
-  console.log(`📌 Target: ${total} URLs (${Math.round(CONFIG.REELS_RATIO * 100)}% reels)`);
+  console.log(`📌 Target: ${total} posts`);
   
   const posts = await scrapeInstagramSearch(keyword, total);
   
