@@ -173,10 +173,11 @@ const DashboardPage: React.FC = () => {
   const fetchDidYouKnow = async () => {
     try {
       if (!user) return;
+      
+      // Fetch industry-shared notes (RLS policy will automatically filter by user's industry)
       const { data, error } = await supabase
         .from("did_you_know")
         .select("id, note, date")
-        .eq("user_id", user.id)
         .order("date", { ascending: false })
         .limit(3);
 
