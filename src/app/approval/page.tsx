@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import bgimage from "../../../public/assets/bgimage.jpg";
+import Particles from "@/components/Particles";
 
 const supabase = createClient();
 
@@ -126,25 +125,22 @@ const ApprovalPage: React.FC = () => {
   // Show loading state while checking auth and approval
   if (authLoading || checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="text-white text-xl">Preparing dashboard...</div>
+      <div className="relative min-h-screen flex items-center justify-center bg-black">
+        <div className="absolute inset-0">
+          <Particles />
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
+        <div className="relative z-10 text-white text-xl">Preparing dashboard...</div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-[var(--font-roboto)]">
-      {/* Background Image */}
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-[var(--font-roboto)] bg-black">
+      {/* Background Particles */}
       <div className="absolute inset-0">
-        <Image
-          src={bgimage}
-          alt="Background"
-          placeholder="blur"
-          fill
-          priority
-          style={{ objectFit: "cover" }}
-        />
-        <div className="absolute inset-0 bg-black/60" />
+        <Particles />
+        <div className="absolute inset-0 bg-black/40" />
       </div>
 
       {/* Approval Card */}

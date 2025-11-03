@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import bgimage from "../../../public/assets/bgimage.jpg";
+import Particles from "@/components/Particles";
 
 const supabase = createClient();
 
@@ -91,17 +90,10 @@ const LoginPage: React.FC = () => {
   // Show loading state while checking authentication
   if (authLoading) {
     return (
-      <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4">
+      <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4 bg-black">
         <div className="absolute inset-0">
-          <Image
-            src={bgimage}
-            alt="Background"
-            placeholder="blur"
-            fill
-            priority
-            style={{ objectFit: "cover" }}
-          />
-          <div className="absolute inset-0 bg-black/60" />
+          <Particles />
+          <div className="absolute inset-0 bg-black/40" />
         </div>
         <div className="relative z-10 text-white text-xl">Loading...</div>
       </div>
@@ -109,18 +101,11 @@ const LoginPage: React.FC = () => {
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4">
-      {/* Background Image */}
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden p-4 bg-black">
+      {/* Background Particles */}
       <div className="absolute inset-0">
-        <Image
-          src={bgimage}
-          alt="Background"
-          placeholder="blur"
-          fill
-          priority
-          style={{ objectFit: "cover" }}
-        />
-        <div className="absolute inset-0 bg-black/60" />
+        <Particles />
+        <div className="absolute inset-0 bg-black/40" />
       </div>
 
       {/* Login Form */}

@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import bgimage from "../../../public/assets/bgimage.jpg";
+import Particles from "@/components/Particles";
 import lancelogo from "../../../public/assets/lancelogo.png";
 
 const WelcomeClient: React.FC = () => {
@@ -51,17 +51,10 @@ const WelcomeClient: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-[var(--font-roboto)]">
-      {/* Background Image */}
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden font-[var(--font-roboto)] bg-black">
+      {/* Background Particles */}
       <div className="absolute inset-0">
-        <Image
-          src={bgimage}
-          alt="Background"
-          placeholder="blur"
-          fill
-          priority
-          style={{ objectFit: "cover" }}
-        />
+        <Particles />
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       </div>
 
