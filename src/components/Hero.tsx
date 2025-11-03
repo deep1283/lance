@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
 import Head from "next/head";
 import { useRouter } from "next/navigation";
 import DarkVeil from "./DarkVeil";
@@ -50,7 +50,7 @@ const ScrollTiltDashboard: React.FC = () => {
 };
 
 const AnimatedDashboard: React.FC<{
-  imageSrc: any;
+  imageSrc: StaticImageData;
   alt: string;
   direction: "left" | "right";
 }> = ({ imageSrc, alt, direction }) => {
