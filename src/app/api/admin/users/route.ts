@@ -10,7 +10,11 @@ export async function GET(req: NextRequest) {
   try {
     // Verify admin access
     const authHeader = req.headers.get("authorization");
-    const adminSecret = process.env.NEXT_PUBLIC_ADMIN_SECRET || "admin-secret";
+    const adminSecret = process.env.NEXT_PUBLIC_ADMIN_SECRET;
+    
+    if (!adminSecret) {
+      return NextResponse.json({ error: "Admin secret not configured" }, { status: 500 });
+    }
     
     if (authHeader !== `Bearer ${adminSecret}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

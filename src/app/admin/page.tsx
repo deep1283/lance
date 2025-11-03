@@ -32,7 +32,11 @@ const AdminDashboard: React.FC = () => {
 
   // Check authentication
   const handleAuthenticate = () => {
-    const validToken = process.env.NEXT_PUBLIC_ADMIN_SECRET || "admin-secret";
+    const validToken = process.env.NEXT_PUBLIC_ADMIN_SECRET;
+    if (!validToken) {
+      alert("Admin secret not configured");
+      return;
+    }
     if (token === validToken) {
       setAuthenticated(true);
       fetchUsers();
@@ -47,9 +51,7 @@ const AdminDashboard: React.FC = () => {
     try {
       const response = await fetch("/api/admin/users", {
         headers: {
-          Authorization: `Bearer ${
-            process.env.NEXT_PUBLIC_ADMIN_SECRET || "admin-secret"
-          }`,
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_ADMIN_SECRET}`,
         },
       });
       if (!response.ok) {

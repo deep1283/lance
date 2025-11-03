@@ -27,13 +27,18 @@ export async function middleware(request: NextRequest) {
     );
   }
 
+  // Skip auth check for admin routes (they have their own token auth)
+  if (request.nextUrl.pathname.startsWith("/admin")) {
+    return response;
+  }
+
   // Get user session for auth checks
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   // Define protected paths
-  const protectedPaths = ["/dashboard", "/admin", "/welcome"];
+  const protectedPaths = ["/dashboard", "/welcome"];
   const authPaths = ["/login"];
   const isProtectedPath = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
