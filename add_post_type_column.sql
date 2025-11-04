@@ -61,3 +61,4 @@ SELECT
   COUNT(CASE WHEN media_url IS NOT NULL THEN 1 END) as with_media_url
 FROM public.competitor_creatives 
 GROUP BY post_type;
+

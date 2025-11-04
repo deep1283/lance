@@ -43,3 +43,13 @@ next-env.d.ts
 
 # instagram scraper
 instagram-session.json
+
+# ML models (large binary files)
+ml/models/*.pkl
+ml/models/*.json
+!ml/models/.gitkeep
+
+# Python virtual environments
+ml/venv/
+venv/
+.venv/

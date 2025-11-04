@@ -55,3 +55,4 @@ SELECT
   COUNT(*) FILTER (WHERE user_id IS NOT NULL) as personal_notes,
   COUNT(*) as total_notes
 FROM public.did_you_know;
+

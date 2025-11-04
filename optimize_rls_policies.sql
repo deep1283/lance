@@ -219,3 +219,4 @@ WHERE schemaname = 'public'
     'strategy_competitors', 'did_you_know', 'analyzed_websites'
   )
 ORDER BY tablename, policyname;
+
