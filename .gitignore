@@ -52,4 +52,5 @@ ml/models/*.json
 # Python virtual environments
 ml/venv/
 venv/
-.venv/
+.venv/__pycache__/
+*.pyc
