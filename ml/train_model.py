@@ -105,6 +105,7 @@ def prepare_features(df):
         feature_vector.append(float(row.get('likes_count', 0)))
         feature_vector.append(float(row.get('comments_count', 0)))
         feature_vector.append(float(row.get('views_count', 0) or 0))
+        feature_vector.append(float(row.get('followers_count', 0) or 0))  # Account followers count
         
         # 3. Post type (one-hot encoded)
         post_type = row.get('post_type', 'image')

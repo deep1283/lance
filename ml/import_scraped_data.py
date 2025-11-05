@@ -137,6 +137,19 @@ def import_csv(csv_path: str, user_id: str = None):
                 "language": row.get('Language', 'English') or 'English',
             }
             
+            # Followers (optional - account followers count)
+            followers_val = None
+            for col in ['Followers', 'followers', 'FOLLOWERS', 'Follower Count', 'follower_count']:
+                if col in row and row[col] and str(row[col]).strip():
+                    followers_val = str(row[col]).strip()
+                    break
+            
+            if followers_val:
+                try:
+                    data["followers_count"] = int(followers_val)
+                except (ValueError, TypeError):
+                    pass
+            
             # Views (only for reels/videos - optional)
             views_val = None
             for col in ['Views', 'views', 'VIEWS', 'View Count', 'view_count']:

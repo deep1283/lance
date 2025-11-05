@@ -1,5 +1,5 @@
-URL,Type,Likes,Comments,Views,Caption,Language,Posted Date,Keyword,Theme,Tone,Color,CTA Present,Paid
-https://www.instagram.com/p/ABC123/,image,1250,89,,"Beautiful gold-plated jewelry collection! ✨ Shop now #jewelry #fashion",English,2024-01-15,jewellery,Festival,Traditional,Gold,true,false
-https://www.instagram.com/reel/XYZ456/,reel,3200,156,45000,"Check out our new bridal collection! 💍 #bridal #jewelry",English,2024-01-16,gold-plated,Bridal,Luxury,Gold Silver,true,true
-https://www.instagram.com/p/DEF789/,carousel,890,45,,"Festival collection - Traditional meets modern 🎉 #festival",English,2024-01-17,jewellery,Festival Traditional,Affordable Playful,Vibrant Cool,false,false
+URL,Type,Likes,Comments,Views,Followers,Caption,Language,Posted Date,Keyword,Theme,Tone,Color,CTA Present,Paid
+https://www.instagram.com/p/ABC123/,image,1250,89,,50000,"Beautiful gold-plated jewelry collection! ✨ Shop now #jewelry #fashion",English,2024-01-15,jewellery,Festival,Traditional,Gold,true,false
+https://www.instagram.com/reel/XYZ456/,reel,3200,156,45000,75000,"Check out our new bridal collection! 💍 #bridal #jewelry",English,2024-01-16,gold-plated,Bridal,Luxury,Gold Silver,true,true
+https://www.instagram.com/p/DEF789/,carousel,890,45,,30000,"Festival collection - Traditional meets modern 🎉 #festival",English,2024-01-17,jewellery,Festival Traditional,Affordable Playful,Vibrant Cool,false,false
 
