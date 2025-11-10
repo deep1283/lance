@@ -45,6 +45,24 @@ export async function middleware(request: NextRequest) {
   );
   const isAuthPath = authPaths.includes(request.nextUrl.pathname);
 
+  // Redirect logged-in users hitting the marketing homepage to the right place
+  if (request.nextUrl.pathname === "/" && user) {
+    try {
+      const { data: approvalRecord } = await supabase
+        .from("users")
+        .select("is_approved")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      const destination =
+        approvalRecord?.is_approved === false ? "/approval" : "/welcome";
+
+      return NextResponse.redirect(new URL(destination, request.url));
+    } catch {
+      return NextResponse.redirect(new URL("/approval", request.url));
+    }
+  }
+
   // Redirect logic
   if (isProtectedPath && !user) {
     // Protected path but no user → redirect to login
