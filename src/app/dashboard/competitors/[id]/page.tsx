@@ -513,43 +513,44 @@ const CompetitorDetailPage: React.FC = () => {
                             })()}
                             {(() => {
                               const mediaInfo = getMediaInfo(ad);
-                              return (
+                              const isVideo =
                                 mediaInfo &&
                                 mediaInfo.type === "video" &&
-                                mediaInfo.url && (
-                                  <div className="relative group cursor-pointer">
-                                    <video
-                                      src={mediaInfo.url}
-                                      className="w-full h-48 object-cover rounded-lg mb-3"
-                                      onClick={() =>
-                                        setSelectedMedia({
-                                          type: "video",
-                                          url: mediaInfo.url!,
-                                        })
-                                      }
-                                      preload="metadata"
-                                    />
-                                    {/* Overlay fix: allow clicks through and disable base opacity */}
-                                    <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                        <svg
-                                          className="w-8 h-8 text-white"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                          />
-                                        </svg>
-                                      </div>
-                                    </div>
+                                mediaInfo.url;
+                              return isVideo ? (
+                                <button
+                                  type="button"
+                                  className="relative group cursor-pointer w-full"
+                                  onClick={() =>
+                                    setSelectedMedia({
+                                      type: "video",
+                                      url: (mediaInfo as { url: string }).url,
+                                    })
+                                  }
+                                >
+                                  <video
+                                    src={(mediaInfo as { url: string }).url}
+                                    className="w-full h-48 object-cover rounded-lg mb-3 pointer-events-none"
+                                    preload="metadata"
+                                    muted
+                                  />
+                                  <div className="absolute inset-0 pointer-events-none bg-black/30 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <svg
+                                      className="w-10 h-10 text-white"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                      />
+                                    </svg>
                                   </div>
-                                )
-                              );
+                                </button>
+                              ) : null;
                             })()}
                             <div
                               className="text-sm text-gray-300 cursor-pointer hover:bg-gray-800 rounded-lg p-2 transition-colors"
@@ -908,42 +909,44 @@ const CompetitorDetailPage: React.FC = () => {
 
                             {(() => {
                               const mediaInfo = getMediaInfo(creative);
-                              return (
+                              const isVideo =
                                 mediaInfo &&
                                 mediaInfo.type === "video" &&
-                                mediaInfo.url && (
-                                  <div className="relative group cursor-pointer">
-                                    <video
-                                      src={mediaInfo.url}
-                                      className="w-full h-48 object-cover rounded-lg mb-3"
-                                      onClick={() =>
-                                        setSelectedMedia({
-                                          type: "video",
-                                          url: mediaInfo.url!,
-                                        })
-                                      }
-                                      preload="metadata"
-                                    />
-                                    <div className="absolute inset-0 pointer-events-none bg-transparent group-hover:bg-black/30 transition-all duration-200 rounded-lg flex items-center justify-center">
-                                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                        <svg
-                                          className="w-8 h-8 text-white"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          viewBox="0 0 24 24"
-                                        >
-                                          <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                          />
-                                        </svg>
-                                      </div>
-                                    </div>
+                                mediaInfo.url;
+                              return isVideo ? (
+                                <button
+                                  type="button"
+                                  className="relative group cursor-pointer w-full"
+                                  onClick={() =>
+                                    setSelectedMedia({
+                                      type: "video",
+                                      url: (mediaInfo as { url: string }).url,
+                                    })
+                                  }
+                                >
+                                  <video
+                                    src={(mediaInfo as { url: string }).url}
+                                    className="w-full h-48 object-cover rounded-lg mb-3 pointer-events-none"
+                                    preload="metadata"
+                                    muted
+                                  />
+                                  <div className="absolute inset-0 pointer-events-none bg-black/30 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    <svg
+                                      className="w-10 h-10 text-white"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                      />
+                                    </svg>
                                   </div>
-                                )
-                              );
+                                </button>
+                              ) : null;
                             })()}
                             <div
                               className="text-sm text-gray-300 cursor-pointer hover:bg-gray-800 rounded-lg p-2 transition-colors"

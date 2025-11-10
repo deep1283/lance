@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Competitor } from "@/types/dashboard";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePrefetch } from "@/hooks/usePrefetch";
 
 import lancelogo from "../../../public/assets/lancelogo.png";
 import lancesymbol from "../../../public/assets/lanceIQ-symbol.png";
@@ -21,6 +22,7 @@ const DashboardSidebar: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const pathname = usePathname();
   const { user } = useAuth();
+  const { prefetchCompetitor } = usePrefetch();
 
   useEffect(() => {
     if (user) {
@@ -55,7 +57,13 @@ const DashboardSidebar: React.FC = () => {
         .order("name");
 
       if (competitorsError) throw competitorsError;
-      setCompetitors(competitorsData || []);
+      const list = competitorsData || [];
+      setCompetitors(list);
+
+      // Prefetch the first few competitor pages so the first switch feels instant
+      list.slice(0, 3).forEach((competitor) =>
+        prefetchCompetitor(competitor.id)
+      );
     } catch (error) {
       console.error("Error fetching competitors:", error);
       setCompetitors([]);
@@ -230,6 +238,8 @@ const DashboardSidebar: React.FC = () => {
                   key={competitor.id}
                   href={`/dashboard/competitors/${competitor.id}`}
                   prefetch={true}
+                  onMouseEnter={() => prefetchCompetitor(competitor.id)}
+                  onFocus={() => prefetchCompetitor(competitor.id)}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`flex items-center justify-between px-3 py-2 rounded-md transition-all duration-200 group ${
                     isCompetitorActive(competitor.id)
