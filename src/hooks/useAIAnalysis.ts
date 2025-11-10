@@ -3,6 +3,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   getRateLimitFallback,
 } from "@/lib/ai-fallback-content";
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
 
 export interface AIAnalysisHook {
   analysis: string;
@@ -24,9 +27,9 @@ const globalCache = new Map<
 const globalLoadingStates = new Set<string>();
 
 async function getAIAnalysis(
+  userId: string,
   competitorId: string,
-  analysisType: string,
-  session: { access_token: string } | null
+  analysisType: string
 ): Promise<{ analysis: string; error: string | null }> {
   const cacheKey = `${competitorId}-${analysisType}`;
 
@@ -67,22 +70,38 @@ async function getAIAnalysis(
   });
 
   try {
-    const response = await fetch("/api/ai", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session?.access_token}`,
-      },
-      body: JSON.stringify({ competitorId, analysisType, retrieveOnly: true }),
-    });
+    // Determine which competitor ID to look up for competitive analysis
+    let lookupCompetitorId = competitorId;
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `API call failed: ${response.status}`);
+    if (analysisType === "competitive_intelligence") {
+      const { data: userCompetitors } = await supabase
+        .from("user_competitors")
+        .select("competitor_id")
+        .eq("user_id", userId)
+        .limit(1);
+
+      if (userCompetitors && userCompetitors.length > 0) {
+        lookupCompetitorId = userCompetitors[0].competitor_id;
+      }
     }
 
-    const data = await response.json();
-    const analysis = data.analysis || "Analysis temporarily unavailable.";
+    const { data, error } = await supabase
+      .from("ai_analyses")
+      .select("content")
+      .eq("user_id", userId)
+      .eq("analysis_type", analysisType)
+      .eq("competitor_id", lookupCompetitorId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error && error.code !== "PGRST116") {
+      throw error;
+    }
+
+    const analysis =
+      data?.content ||
+      "AI analysis is being generated. Please check back shortly.";
 
     // Update cache
     globalCache.set(cacheKey, {
@@ -93,7 +112,7 @@ async function getAIAnalysis(
 
     return {
       analysis,
-      error: data.error || null,
+      error: null,
     };
   } catch (error) {
     console.error("Error calling AI analysis API:", error);
@@ -142,11 +161,11 @@ export function useAIAnalysis(
   const [analysis, setAnalysis] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user, session } = useAuth();
+  const { user } = useAuth();
   const hasInitialized = useRef(false);
 
   const fetchAnalysis = async () => {
-    if (!user || !session || !competitorId) return;
+    if (!user || !competitorId) return;
 
     const cacheKey = `${competitorId}-${analysisType}`;
     const cached = globalCache.get(cacheKey);
@@ -160,7 +179,7 @@ export function useAIAnalysis(
       setLoading(true);
     }
 
-    const result = await getAIAnalysis(competitorId, analysisType, session);
+    const result = await getAIAnalysis(user.id, competitorId, analysisType);
     setAnalysis(result.analysis);
     setError(result.error);
     setLoading(false);
@@ -172,15 +191,13 @@ export function useAIAnalysis(
     if (
       !hasInitialized.current &&
       user &&
-      session &&
       competitorId &&
       competitorId.trim() !== ""
     ) {
       hasInitialized.current = true;
       fetchAnalysis();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [competitorId, analysisType]);
+  }, [competitorId, analysisType, user?.id]);
 
   return { analysis, loading, error };
 }
