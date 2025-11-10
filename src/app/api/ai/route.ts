@@ -11,6 +11,42 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+type MediaRecord = {
+  media_url?: string | null;
+  image_url?: string | null;
+  video_url?: string | null;
+  carousel_images?: string | null;
+  [key: string]: unknown;
+};
+
+function sanitizeMediaRecords<T extends MediaRecord>(
+  records?: T[] | null
+): Array<Omit<T, "image_url" | "video_url" | "carousel_images"> & {
+  media_url: string | null;
+}> {
+  if (!records) return [];
+
+  return records.map((record) => {
+    const {
+      image_url,
+      video_url,
+      carousel_images,
+      media_url,
+      ...rest
+    } = record;
+
+    return {
+      ...(rest as Omit<T, "image_url" | "video_url" | "carousel_images">),
+      media_url:
+        (media_url as string | null | undefined) ||
+        (image_url as string | null | undefined) ||
+        (video_url as string | null | undefined) ||
+        (carousel_images as string | null | undefined) ||
+        null,
+    };
+  });
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -163,21 +199,25 @@ export async function POST(req: Request) {
         userCompetitors?.map((uc) => uc.competitor_id) || [];
 
       // Get aggregated data for ALL competitors
-      const { data: allAds } = await supabase
+      const { data: allAdsRaw } = await supabase
         .from("competitor_ads")
         .select("*")
         .in("competitor_id", competitorIds)
         .eq("is_active", true);
 
-      const { data: allCreatives } = await supabase
+      const { data: allCreativesRaw } = await supabase
         .from("competitor_creatives")
         .select("*")
         .in("competitor_id", competitorIds);
 
-      const { data: allTopPosts } = await supabase
+      const { data: allTopPostsRaw } = await supabase
         .from("competitor_top_posts")
         .select("*")
         .in("competitor_id", competitorIds);
+
+      const allAds = sanitizeMediaRecords(allAdsRaw);
+      const allCreatives = sanitizeMediaRecords(allCreativesRaw);
+      const allTopPosts = sanitizeMediaRecords(allTopPostsRaw);
 
       // Get user profile for niche context
       const { data: userProfile } = await supabase
@@ -252,10 +292,11 @@ ANALYSIS APPROACH:
 - Focus on maximizing engagement, DMs, and inquiries from retailers, not end consumers
 `;
     } else if (analysisType === "paid_ads_analysis") {
-      const { data: ads } = await supabase
+      const { data: adsRaw } = await supabase
         .from("competitor_ads")
         .select("*")
         .eq("competitor_id", competitorId);
+      const ads = sanitizeMediaRecords(adsRaw);
 
       const { data: competitor } = await supabase
         .from("competitors")
@@ -320,15 +361,17 @@ TONE:
 - Highlight their failures and your opportunities
 `;
     } else if (analysisType === "organic_content_analysis") {
-      const { data: creatives } = await supabase
+      const { data: creativesRaw } = await supabase
         .from("competitor_creatives")
         .select("*")
         .eq("competitor_id", competitorId);
 
-      const { data: topPosts } = await supabase
+      const { data: topPostsRaw } = await supabase
         .from("competitor_top_posts")
         .select("*")
         .eq("competitor_id", competitorId);
+      const creatives = sanitizeMediaRecords(creativesRaw);
+      const topPosts = sanitizeMediaRecords(topPostsRaw);
 
       const { data: competitor } = await supabase
         .from("competitors")
@@ -336,25 +379,24 @@ TONE:
         .eq("id", competitorId)
         .single();
 
-      systemPrompt =
-        "You are an Instagram genius specializing in jewelry social media marketing. Analyze organic content strategies.";
+      const competitorName = competitor?.name || "this competitor";
+
+      systemPrompt = `You are an Instagram strategist for jewelry wholesalers.
+Describe ${competitorName} strictly in third-person (they/their).
+Use "you" only when giving recommendations to our client about what to copy or how to beat ${competitorName}.`;
 
       if (
         (!creatives || creatives.length === 0) &&
         (!topPosts || topPosts.length === 0)
       ) {
         return Response.json({
-          analysis: `No organic content data available for ${
-            competitor?.name || "this competitor"
-          }. No analysis can be provided without actual content data.`,
+          analysis: `No organic content data available for ${competitorName}. No analysis can be provided without actual content data.`,
         });
       }
 
       prompt = `
 OBJECTIVE:
-Analyze ${
-        competitor?.name || "this competitor"
-      }'s organic social media strategy to identify opportunities for you to outperform them and areas where you can learn from their approach.
+Analyze ${competitorName}'s organic social media strategy. Explain what they do, then translate each observation into actions the user can take.
 
 CURRENT STRATEGY (Recent Posts):
 ${JSON.stringify(creatives || [], null, 2)}
@@ -362,47 +404,38 @@ ${JSON.stringify(creatives || [], null, 2)}
 PROVEN WINNERS (Viral Posts - Top Performing Content):
 ${JSON.stringify(topPosts || [], null, 2)}
 
-ANALYSIS APPROACH:
-- Identify ${
-        competitor?.name || "this competitor"
-      }'s content weaknesses that you can exploit
-- Highlight their strengths that you should learn from and replicate
-- Focus on how YOU can outperform them, not how to help them improve
-- Be critical and analytical, not promotional of the competitor
+Structure your response exactly like this:
 
-Provide insights in this EXACT format:
+### Competitive Analysis: ${competitorName}'s Organic Social Strategy
 
-### Competitive Analysis: ${
-        competitor?.name || "this competitor"
-      }'s Organic Social Strategy
+1. Competitor Overview  
+   - Describe ${competitorName}'s content pillars and positioning in third-person.
 
-Content Strategy Analysis:
-[Analyze their content themes and messaging - identify gaps and weaknesses you can exploit, and strengths you should adopt]
+2. Strengths vs. Weaknesses  
+   - **Strengths (they...):** 3 bullets citing concrete data points.  
+   - **Weaknesses (they...):** 3 bullets with data-backed gaps.  
+   - **How You Respond:** 2-3 bullets addressing how the user can copy strengths or exploit weaknesses.
 
-Engagement Performance Review:
-[Evaluate their engagement patterns - point out what's missing or poorly executed that you can do better, and what works that you should replicate]
+3. Engagement Diagnostics  
+   - Reference specific posts (likes/comments/views) to explain what's resonating for ${competitorName}.  
+   - End with a short "Borrow & Beat" list speaking directly to the user.
 
-Posting Strategy Gaps:
-[Identify their posting frequency issues, timing problems, and consistency failures that give you competitive advantages]
+4. Posting Cadence + Hooks  
+   - Summarize timing/frequency patterns for ${competitorName}.  
+   - Provide an "Actionable Swipe File" of hooks/visual ideas the user can deploy next.
 
-Viral Content Opportunities:
-[Highlight what they're missing in their viral content strategy and what successful elements you should replicate]
-
-Your Content Advantages:
-[Specific strategies for how YOU can outperform them based on their content weaknesses and gaps]
-
-TONE:
-- Be critical and analytical of the competitor
-- Focus on YOUR opportunities to win
-- Address the user as "you" 
-- Don't praise the competitor unnecessarily
-- Highlight their failures and your opportunities
+Rules:
+- Refer to ${competitorName} with third-person pronouns only.  
+- Use "you" solely when advising the client.  
+- Every recommendation must tie back to the supplied dataset (cite metrics or timestamps when possible).  
+- Focus on helping the client out-execute the competitor.
 `;
     } else if (analysisType === "viral_reels_analysis") {
-      const { data: topPosts } = await supabase
+      const { data: topPostsRaw } = await supabase
         .from("competitor_top_posts")
         .select("*")
         .eq("competitor_id", competitorId);
+      const topPosts = sanitizeMediaRecords(topPostsRaw);
 
       const { data: competitor } = await supabase
         .from("competitors")
