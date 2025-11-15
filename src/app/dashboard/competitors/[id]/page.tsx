@@ -195,6 +195,7 @@ const CompetitorDetailPage: React.FC = () => {
               "id, competitor_id, platform, caption, likes_count, views_count, comments_count, posted_at, post_type, media_url"
             )
             .eq("competitor_id", params.id)
+            .or("is_boosted.is.null,is_boosted.eq.false")
             .order("posted_at", { ascending: false }),
 
           // Fetch competitor top posts (viral reels)

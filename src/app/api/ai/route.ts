@@ -208,7 +208,8 @@ export async function POST(req: Request) {
       const { data: allCreativesRaw } = await supabase
         .from("competitor_creatives")
         .select("*")
-        .in("competitor_id", competitorIds);
+        .in("competitor_id", competitorIds)
+        .or("is_boosted.is.null,is_boosted.eq.false");
 
       const { data: allTopPostsRaw } = await supabase
         .from("competitor_top_posts")
@@ -364,7 +365,8 @@ TONE:
       const { data: creativesRaw } = await supabase
         .from("competitor_creatives")
         .select("*")
-        .eq("competitor_id", competitorId);
+        .eq("competitor_id", competitorId)
+        .or("is_boosted.is.null,is_boosted.eq.false");
 
       const { data: topPostsRaw } = await supabase
         .from("competitor_top_posts")

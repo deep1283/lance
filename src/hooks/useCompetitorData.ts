@@ -71,6 +71,7 @@ export const useCompetitorData = (competitorId: string) => {
             .from("competitor_creatives")
             .select("*")
             .eq("competitor_id", competitorId)
+            .or("is_boosted.is.null,is_boosted.eq.false")
             .order("posted_at", { ascending: false }),
 
           supabase

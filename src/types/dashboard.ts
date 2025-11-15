@@ -47,6 +47,7 @@ export interface Creative {
   media_url?: string;
   caption?: string;
   post_type?: string;
+  is_boosted?: boolean | null;
   likes_count?: number;
   views_count?: number;
   comments_count?: number;
