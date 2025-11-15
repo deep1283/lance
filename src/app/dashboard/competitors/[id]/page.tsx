@@ -612,9 +612,6 @@ const CompetitorDetailPage: React.FC = () => {
                         <BarChart
                           data={(() => {
                             const totalAds = ads.length;
-                            const imageAds = ads.filter(
-                              (ad) => ad.image_url
-                            ).length;
 
                             if (totalAds === 0) {
                               return [
@@ -622,6 +619,19 @@ const CompetitorDetailPage: React.FC = () => {
                                 { name: "Video", value: 0 },
                               ];
                             }
+
+                            const videoAds = ads.filter((ad) => {
+                              const url = ad.media_url || "";
+                              return (
+                                ad.post_type === "video" ||
+                                ad.post_type === "reel" ||
+                                url.includes(".mp4") ||
+                                url.includes(".mov") ||
+                                url.includes("video")
+                              );
+                            }).length;
+
+                            const imageAds = Math.max(0, totalAds - videoAds);
 
                             return [
                               {
@@ -631,7 +641,7 @@ const CompetitorDetailPage: React.FC = () => {
                               {
                                 name: "Video",
                                 value: Math.round(
-                                  ((totalAds - imageAds) / totalAds) * 100
+                                  (videoAds / totalAds) * 100
                                 ),
                               },
                             ];
@@ -1136,22 +1146,35 @@ const CompetitorDetailPage: React.FC = () => {
                         <h4 className="text-md font-semibold text-white mb-4">
                           Image vs Video Distribution
                         </h4>
-                        <ResponsiveContainer width="100%" height={250}>
-                          <BarChart
-                            data={(() => {
-                              // Use all creatives from competitor_creatives table for charts
-                              const totalCreatives = creatives.length;
-                              const imagePosts = creatives.filter(
-                                (c) => c.post_type === "image"
-                              ).length;
-                              const videoPosts = creatives.filter(
-                                (c) => c.post_type === "reel"
-                              ).length;
+                      <ResponsiveContainer width="100%" height={250}>
+                        <BarChart
+                          data={(() => {
+                            // Use all creatives from competitor_creatives table for charts
+                            const totalCreatives = creatives.length;
+                            const imagePosts = creatives.filter((c) => {
+                              const url = c.media_url || "";
+                              return (
+                                c.post_type === "image" ||
+                                (!c.post_type &&
+                                  !url.includes(".mp4") &&
+                                  !url.includes(".mov") &&
+                                  !url.includes("video"))
+                              );
+                            }).length;
+                            const videoPosts = creatives.filter((c) => {
+                              const url = c.media_url || "";
+                              return (
+                                c.post_type === "reel" ||
+                                url.includes(".mp4") ||
+                                url.includes(".mov") ||
+                                url.includes("video")
+                              );
+                            }).length;
 
-                              if (totalCreatives === 0) {
-                                return [
-                                  { name: "Image", value: 0 },
-                                  { name: "Video", value: 0 },
+                            if (totalCreatives === 0) {
+                              return [
+                                { name: "Image", value: 0 },
+                                { name: "Video", value: 0 },
                                 ];
                               }
 

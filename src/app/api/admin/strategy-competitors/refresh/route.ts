@@ -152,6 +152,8 @@ export async function POST(req: Request) {
         "id, competitor_id, post_type, caption, media_url, likes_count, views_count, comments_count, posted_at"
       )
       .in("competitor_id", competitorIds)
+      // Ignore boosted/promoted posts; allow null to keep legacy rows
+      .or("is_boosted.is.null,is_boosted.eq.false")
       .gte("posted_at", startUTC.toISOString())
       .lt("posted_at", endUTC.toISOString());
     if (crError) {
