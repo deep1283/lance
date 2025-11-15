@@ -83,6 +83,14 @@ const AboutPage = () => {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-[#0b0620] to-black text-white">
+      <div className="max-w-5xl mx-auto px-6 pt-8">
+        <Link
+          href="/"
+          className="inline-flex items-center text-sm text-gray-400 hover:text-white transition"
+        >
+          <span className="text-xl mr-1">←</span> Back
+        </Link>
+      </div>
       <section className="max-w-5xl mx-auto px-6 py-20 text-center">
         <p className="uppercase tracking-widest text-violet-300 text-xs mb-6">
           About LanceIQ
@@ -171,17 +179,17 @@ const AboutPage = () => {
           className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
           onClick={() => setShowTerms(false)}
         >
+          <button
+            onClick={() => setShowTerms(false)}
+            className="fixed top-6 right-6 z-50 bg-white/10 text-white rounded-full px-3 py-1 text-sm hover:bg-white/20 transition"
+            aria-label="Close terms modal"
+          >
+            ✕
+          </button>
           <div
             className="max-w-3xl w-full max-h-[90vh] overflow-y-auto bg-[#0a0918] border border-violet-800 rounded-2xl p-6 relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              onClick={() => setShowTerms(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
-              aria-label="Close terms modal"
-            >
-              ✕
-            </button>
             <h3 className="text-2xl font-semibold mb-4 text-white">
               LanceIQ Terms & Conditions
             </h3>
