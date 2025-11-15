@@ -12,6 +12,10 @@ const Navbar: React.FC = () => {
     router.push("/login");
   };
 
+  const handleAbout = () => {
+    router.push("/about");
+  };
+
   return (
     <header className="m-0  bg-black h-17 flex items-center justify-between px-3">
       {/* Logo */}
@@ -19,8 +23,14 @@ const Navbar: React.FC = () => {
         <Image src={lancelogo} alt="LanceIQ Logo" className="w-36" priority />
       </div>
 
-      {/* CTA Button */}
       <div>
+        <button
+          onClick={handleAbout}
+          className="bg-[#5425B0] rounded-2xl text-white px-4 py-2 mr-3 hover:scale-105 transition-transform duration-300 hover:cursor-pointer"
+        >
+          ABOUT US
+        </button>
+
         <button
           onClick={handleGetStarted}
           className="bg-[#5425B0] rounded-2xl text-white px-4 py-2 mr-3 hover:scale-105 transition-transform duration-300 hover:cursor-pointer"
@@ -28,6 +38,9 @@ const Navbar: React.FC = () => {
           GET STARTED
         </button>
       </div>
+
+      {/* CTA Button */}
+      
     </header>
   );
 };

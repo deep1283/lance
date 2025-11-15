@@ -219,7 +219,7 @@ Edit `/src/app/approval/page.tsx`:
 ### Change Support Email:
 
 ```tsx
-<a href="mailto:support@lanceiq.com">Contact Support</a>
+<a href="mailto:lanceiq.help@gmail.com">Contact Support</a>
 ```
 
 ### Auto-Approve for Testing:

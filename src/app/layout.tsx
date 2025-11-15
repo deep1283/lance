@@ -75,11 +75,6 @@ export default function RootLayout({
     ],
     description:
       "LanceIQ is an AI-powered marketing intelligence platform that helps businesses track competitors, analyze Meta ads, and generate smart keyword and hashtag suggestions for better visibility and engagement.",
-    contactPoint: {
-      "@type": "ContactPoint",
-      contactType: "Customer Service",
-      email: "support@lanceiq.com",
-    },
   };
 
   return (
