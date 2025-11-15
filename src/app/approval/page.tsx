@@ -34,8 +34,6 @@ const ApprovalPage: React.FC = () => {
       if (error) {
         // Check if it's a "no rows" error (user doesn't exist)
         if (error.code === "PGRST116") {
-          console.log("No user record found, creating new user record...");
-
           // Create new user record with is_approved = false
           const { error: insertError } = await supabase.from("users").upsert({
             id: user.id,
