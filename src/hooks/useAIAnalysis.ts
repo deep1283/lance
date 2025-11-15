@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getRateLimitFallback,
@@ -164,7 +164,7 @@ export function useAIAnalysis(
   const { user } = useAuth();
   const hasInitialized = useRef(false);
 
-  const fetchAnalysis = async () => {
+  const fetchAnalysis = useCallback(async () => {
     if (!user || !competitorId) return;
 
     const cacheKey = `${competitorId}-${analysisType}`;
@@ -183,7 +183,7 @@ export function useAIAnalysis(
     setAnalysis(result.analysis);
     setError(result.error);
     setLoading(false);
-  };
+  }, [user, competitorId, analysisType]);
 
   useEffect(() => {
     // Only fetch on initial load, not on every render
@@ -197,7 +197,7 @@ export function useAIAnalysis(
       hasInitialized.current = true;
       fetchAnalysis();
     }
-  }, [competitorId, analysisType, user?.id]);
+  }, [competitorId, analysisType, user, fetchAnalysis]);
 
   return { analysis, loading, error };
 }

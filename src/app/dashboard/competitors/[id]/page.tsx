@@ -623,8 +623,6 @@ const CompetitorDetailPage: React.FC = () => {
                             const videoAds = ads.filter((ad) => {
                               const url = ad.media_url || "";
                               return (
-                                ad.post_type === "video" ||
-                                ad.post_type === "reel" ||
                                 url.includes(".mp4") ||
                                 url.includes(".mov") ||
                                 url.includes("video")
