@@ -84,6 +84,29 @@ def clean_comma_separated_value(value: str) -> str:
     # Return comma-separated string (normalized)
     return ','.join(values)
 
+def parse_bool(value: str):
+    """Parse common truthy/falsey strings into booleans."""
+    if value is None:
+        return None
+    val = str(value).strip().lower()
+    if val in ["true", "1", "yes", "y", "t"]:
+        return True
+    if val in ["false", "0", "no", "n", "f", ""]:
+        return False
+    return None
+
+def parse_int(value, default=0):
+    """Parse ints that may contain commas, decimals, or text like '11.4'."""
+    if value is None:
+        return default
+    try:
+        cleaned = str(value).replace(",", "").strip()
+        if cleaned == "":
+            return default
+        return int(float(cleaned))
+    except Exception:
+        return default
+
 def import_csv(csv_path: str, user_id: str = None):
     """Import CSV data into training table."""
     if not os.path.exists(csv_path):
@@ -100,7 +123,7 @@ def import_csv(csv_path: str, user_id: str = None):
         reader = csv.DictReader(f)
         
         for row in reader:
-            post_url = row.get('URL', '').strip()
+            post_url = (row.get('URL') or row.get('Url') or '').strip()
             
             if not post_url:
                 skipped += 1
@@ -130,9 +153,10 @@ def import_csv(csv_path: str, user_id: str = None):
             # Prepare data
             data = {
                 "post_url": post_url,
+                "keyword": row.get('Keyword', '').strip() or None,
                 "post_type": post_type,
-                "likes_count": int(row.get('Likes', 0) or 0),
-                "comments_count": int(row.get('Comments', 0) or 0),
+                "likes_count": parse_int(row.get('Likes', 0)),
+                "comments_count": parse_int(row.get('Comments', 0)),
                 "caption": row.get('Caption', '').strip() or None,
                 "language": row.get('Language', 'English') or 'English',
             }
@@ -141,27 +165,22 @@ def import_csv(csv_path: str, user_id: str = None):
             followers_val = None
             for col in ['Followers', 'followers', 'FOLLOWERS', 'Follower Count', 'follower_count']:
                 if col in row and row[col] and str(row[col]).strip():
-                    followers_val = str(row[col]).strip()
+                    followers_val = parse_int(row[col], None)
                     break
             
-            if followers_val:
-                try:
-                    data["followers_count"] = int(followers_val)
-                except (ValueError, TypeError):
-                    pass
+            if followers_val is not None:
+                # Table column is named 'followers'
+                data["followers"] = followers_val
             
             # Views (only for reels/videos - optional)
             views_val = None
             for col in ['Views', 'views', 'VIEWS', 'View Count', 'view_count']:
                 if col in row and row[col] and str(row[col]).strip():
-                    views_val = str(row[col]).strip()
+                    views_val = parse_int(row[col], None)
                     break
             
-            if views_val:
-                try:
-                    data["views_count"] = int(views_val)
-                except (ValueError, TypeError):
-                    pass
+            if views_val is not None:
+                data["views_count"] = views_val
             
             # Add posted_at if available
             if posted_date:
@@ -202,31 +221,21 @@ def import_csv(csv_path: str, user_id: str = None):
             # CTA Present (boolean)
             cta_present = None
             for col in ['CTA Present', 'cta_present', 'CTA_Present', 'cta', 'CTA']:
-                if col in row and row[col]:
-                    val = str(row[col]).strip().lower()
-                    if val in ['true', '1', 'yes', 'y']:
-                        cta_present = True
-                        break
-                    elif val in ['false', '0', 'no', 'n', '']:
-                        cta_present = False
-                        break
+                if col in row and row[col] is not None:
+                    cta_present = parse_bool(row[col])
+                    break
             if cta_present is not None:
                 data["cta_present"] = cta_present
             
             # Paid (boolean)
-            paid = None
+            paid_val = None
             for col in ['Paid', 'paid', 'PAID', 'Boosted', 'boosted']:
-                if col in row and row[col]:
-                    val = str(row[col]).strip().lower()
-                    if val in ['true', '1', 'yes', 'y']:
-                        paid = True
-                        break
-                    elif val in ['false', '0', 'no', 'n', '']:
-                        paid = False
-                        break
-            if paid is not None:
-                data["paid"] = paid
-            
+                if col in row and row[col] is not None:
+                    paid_val = parse_bool(row[col])
+                    break
+            if paid_val is not None:
+                data["paid"] = paid_val
+
             # Music Type
             music_type = None
             for col in ['Music Type', 'music_type', 'Music_Type', 'Music', 'music']:
@@ -283,4 +292,3 @@ if __name__ == "__main__":
     print("╚══════════════════════════════════════════════════════╝\n")
     
     import_csv(csv_path, user_id)
-

@@ -64,6 +64,7 @@ const CompetitorDetailPage: React.FC = () => {
   const [loadingData, setLoadingData] = useState(true);
   const [ads, setAds] = useState<Ad[]>([]);
   const [creatives, setCreatives] = useState<Creative[]>([]);
+  const [allCreatives, setAllCreatives] = useState<Creative[]>([]);
   const [topPosts, setTopPosts] = useState<Creative[]>([]);
   const [adsLoading, setAdsLoading] = useState(true);
   const [creativesLoading, setCreativesLoading] = useState(true);
@@ -192,10 +193,9 @@ const CompetitorDetailPage: React.FC = () => {
           supabase
             .from("competitor_creatives")
             .select(
-              "id, competitor_id, platform, caption, likes_count, views_count, comments_count, posted_at, post_type, media_url"
+              "id, competitor_id, platform, caption, likes_count, views_count, comments_count, posted_at, post_type, media_url, is_boosted"
             )
             .eq("competitor_id", params.id)
-            .or("is_boosted.is.null,is_boosted.eq.false")
             .order("posted_at", { ascending: false }),
 
           // Fetch competitor top posts (viral reels)
@@ -225,11 +225,15 @@ const CompetitorDetailPage: React.FC = () => {
           creativesResult.value;
         if (creativesError) {
           setCreatives([]);
+          setAllCreatives([]);
         } else {
-          setCreatives(creativesData || []);
+          const all = creativesData || [];
+          setAllCreatives(all);
+          setCreatives(all);
         }
       } else {
         setCreatives([]);
+        setAllCreatives([]);
       }
       setCreativesLoading(false);
 
@@ -267,6 +271,10 @@ const CompetitorDetailPage: React.FC = () => {
       </div>
     );
   }
+
+  const nonBoostedCreatives = allCreatives.filter(
+    (creative) => !creative.is_boosted
+  );
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
@@ -1146,26 +1154,26 @@ const CompetitorDetailPage: React.FC = () => {
                           Image vs Video Distribution
                         </h4>
                       <ResponsiveContainer width="100%" height={250}>
-                        <BarChart
-                          data={(() => {
-                            // Use all creatives from competitor_creatives table for charts
-                            const totalCreatives = creatives.length;
-                            const imagePosts = creatives.filter((c) => {
-                              const url = c.media_url || "";
-                              return (
-                                c.post_type === "image" ||
-                                (!c.post_type &&
-                                  !url.includes(".mp4") &&
-                                  !url.includes(".mov") &&
-                                  !url.includes("video"))
-                              );
-                            }).length;
-                            const videoPosts = creatives.filter((c) => {
-                              const url = c.media_url || "";
-                              return (
-                                c.post_type === "reel" ||
-                                url.includes(".mp4") ||
-                                url.includes(".mov") ||
+                          <BarChart
+                            data={(() => {
+                              // Use all creatives from competitor_creatives table for charts
+                              const totalCreatives = allCreatives.length;
+                              const imagePosts = allCreatives.filter((c) => {
+                                const url = c.media_url || "";
+                                return (
+                                  c.post_type === "image" ||
+                                  (!c.post_type &&
+                                    !url.includes(".mp4") &&
+                                    !url.includes(".mov") &&
+                                    !url.includes("video"))
+                                );
+                              }).length;
+                              const videoPosts = allCreatives.filter((c) => {
+                                const url = c.media_url || "";
+                                return (
+                                  c.post_type === "reel" ||
+                                  url.includes(".mp4") ||
+                                  url.includes(".mov") ||
                                 url.includes("video")
                               );
                             }).length;
@@ -1254,7 +1262,7 @@ const CompetitorDetailPage: React.FC = () => {
                                 );
 
                                 // Find creatives posted on this date
-                                const dayCreatives = creatives.filter(
+                                const dayCreatives = allCreatives.filter(
                                   (creative) => {
                                     const creativeDate = new Date(
                                       creative.posted_at
@@ -1339,12 +1347,11 @@ const CompetitorDetailPage: React.FC = () => {
                       <ResponsiveContainer width="100%" height={300}>
                         <BarChart
                           data={(() => {
-                            // Use all creatives from competitor_creatives table for charts
-
-                            const imagePosts = creatives.filter(
+                            // Use non-boosted creatives for this comparison
+                            const imagePosts = nonBoostedCreatives.filter(
                               (c) => c.post_type === "image"
                             );
-                            const videoPosts = creatives.filter(
+                            const videoPosts = nonBoostedCreatives.filter(
                               (c) => c.post_type === "reel"
                             );
 

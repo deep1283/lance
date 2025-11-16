@@ -73,24 +73,63 @@ CREATE OR REPLACE FUNCTION calculate_engagement_score(
   p_likes INT,
   p_comments INT,
   p_views INT,
-  p_post_type TEXT
+  p_post_type TEXT,
+  p_followers BIGINT,
+  p_paid BOOLEAN
 )
-RETURNS DECIMAL(5,2) AS $$
+RETURNS DECIMAL(12,2) AS $$
 DECLARE
-  raw_score DECIMAL;
-  normalized_score DECIMAL;
-  min_score DECIMAL;
-  max_score DECIMAL;
+  likes_val     DECIMAL := COALESCE(p_likes, 0);
+  comments_val  DECIMAL := COALESCE(p_comments, 0);
+  views_val     DECIMAL := NULLIF(p_views, 0);
+  followers_val DECIMAL := NULLIF(p_followers, 0);
+  wc            DECIMAL := 3;
+  k             DECIMAL := 500;
+  t             DECIMAL := 50;
+  wb            DECIMAL;
+  mb            DECIMAL;
+  er            DECIMAL;
+  ner           DECIMAL;
+  ve            DECIMAL;
+  erf           DECIMAL;
+  nerf          DECIMAL;
+  vfl           DECIMAL;
+  rps           DECIMAL;
 BEGIN
-  -- For videos/reels (with views)
-  IF p_post_type IN ('reel', 'video') AND p_views > 0 THEN
-    RETURN ((p_likes::DECIMAL + (3 * p_comments::DECIMAL)) / p_views::DECIMAL) * 100;
-  
-  -- For images/carousels (no views, needs normalization later)
-  ELSE
-    -- Return raw score (will be normalized during training)
-    RETURN (p_likes::DECIMAL + (3 * p_comments::DECIMAL));
+  wb := CASE WHEN COALESCE(p_paid, false) THEN 0.05 ELSE 0.15 END;
+  mb := CASE WHEN COALESCE(p_paid, false) THEN 0.90 ELSE 1.00 END;
+
+  -- Reels/Videos
+  IF p_post_type IN ('reel', 'video') AND views_val IS NOT NULL THEN
+    er := (likes_val + (wc * comments_val)) / views_val;
+    ner := 100 * LN(1 + k * er) / LN(1 + t);
+    ner := GREATEST(0, LEAST(100, ner));
+
+    IF followers_val IS NOT NULL THEN
+      ve := 100 * LN(1 + (views_val / followers_val)) / LN(1 + 50);
+      ve := GREATEST(0, LEAST(100, ve));
+    ELSE
+      ve := 0;
+    END IF;
+
+    rps := mb * ((0.9 * ner) + (wb * ve));
+    RETURN rps;
   END IF;
+
+  -- Images/Carousels
+  IF followers_val IS NOT NULL THEN
+    erf := (likes_val + (wc * comments_val)) / followers_val;
+    nerf := 100 * LN(1 + k * erf) / LN(1 + t);
+    nerf := GREATEST(0, LEAST(100, nerf));
+  ELSE
+    nerf := 0;
+  END IF;
+
+  vfl := 100 * LOG(10, likes_val + 1) / LOG(10, 100000);
+  vfl := GREATEST(0, LEAST(100, vfl));
+
+  rps := mb * ((0.9 * nerf) + (0.1 * vfl));
+  RETURN rps;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
@@ -102,7 +141,9 @@ BEGIN
     NEW.likes_count,
     NEW.comments_count,
     NEW.views_count,
-    NEW.post_type
+    NEW.post_type,
+    NEW.followers,
+    NEW.paid
   );
   NEW.updated_at = NOW();
   RETURN NEW;

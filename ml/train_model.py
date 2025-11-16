@@ -105,7 +105,11 @@ def prepare_features(df):
         feature_vector.append(float(row.get('likes_count', 0)))
         feature_vector.append(float(row.get('comments_count', 0)))
         feature_vector.append(float(row.get('views_count', 0) or 0))
-        feature_vector.append(float(row.get('followers_count', 0) or 0))  # Account followers count
+        # Followers field is named 'followers' in the table; fall back if older name exists
+        follower_val = row.get('followers')
+        if follower_val is None:
+            follower_val = row.get('followers_count', 0)
+        feature_vector.append(float(follower_val or 0))
         
         # 3. Post type (one-hot encoded)
         post_type = row.get('post_type', 'image')
@@ -202,11 +206,15 @@ def train_model():
     
     # Train model
     model = xgb.XGBRegressor(
-        n_estimators=100,
-        max_depth=6,
-        learning_rate=0.1,
+        n_estimators=300,
+        max_depth=4,
+        learning_rate=0.05,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        min_child_weight=1.0,
+        reg_lambda=1.0,
         random_state=42,
-        n_jobs=-1
+        n_jobs=-1,
     )
     
     model.fit(X_train, y_train)
@@ -270,4 +278,3 @@ if __name__ == "__main__":
     print("╚══════════════════════════════════════════════════════╝\n")
     
     train_model()
-
