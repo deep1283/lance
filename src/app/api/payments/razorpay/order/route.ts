@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       amount,
       currency,
       receipt,
-      payment_capture: 1,
+      payment_capture: true,
     });
 
     return NextResponse.json({ order });
