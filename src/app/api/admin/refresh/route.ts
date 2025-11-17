@@ -62,19 +62,16 @@ async function getCompetitorIdsForUser(userId: string): Promise<string[]> {
 
 async function upsertAnalysis({
   competitorId,
-  userId,
   analysisType,
   content,
 }: {
   competitorId: string;
-  userId: string;
   analysisType: string;
   content: string;
 }) {
   const { error } = await supabase.from("ai_analyses").upsert(
     {
       competitor_id: competitorId,
-      user_id: userId,
       analysis_type: analysisType,
       content,
       created_at: new Date().toISOString(),
@@ -90,8 +87,7 @@ async function upsertAnalysis({
 }
 
 async function refreshPaidAdsAnalysisForCompetitor(
-  competitorId: string,
-  userId: string
+  competitorId: string
 ) {
   const { data: adsRaw } = await supabase
     .from("competitor_ads")
@@ -111,7 +107,6 @@ async function refreshPaidAdsAnalysisForCompetitor(
     const content = `No paid ads running currently for ${competitorName}. No analysis can be provided without actual ad data.`;
     await upsertAnalysis({
       competitorId,
-      userId,
       analysisType: "paid_ads_analysis",
       content,
     });
@@ -174,7 +169,6 @@ TONE:
 
   await upsertAnalysis({
     competitorId,
-    userId,
     analysisType: "paid_ads_analysis",
     content,
   });
@@ -183,8 +177,7 @@ TONE:
 }
 
 async function refreshOrganicAnalysisForCompetitor(
-  competitorId: string,
-  userId: string
+  competitorId: string
 ) {
   const { data: creativesRaw } = await supabase
     .from("competitor_creatives")
@@ -204,7 +197,6 @@ async function refreshOrganicAnalysisForCompetitor(
     const content = `No organic content found for ${competitorName}.`;
     await upsertAnalysis({
       competitorId,
-      userId,
       analysisType: "organic_content_analysis",
       content,
     });
@@ -258,7 +250,6 @@ Rules:
 
   await upsertAnalysis({
     competitorId,
-    userId,
     analysisType: "organic_content_analysis",
     content,
   });
@@ -281,7 +272,7 @@ export async function POST(req: Request) {
     // Get user from database
     const { data: userData, error: userError } = await supabase
       .from("users")
-      .select("*")
+      .select("id")
       .eq("id", userId)
       .single();
 
@@ -313,14 +304,8 @@ export async function POST(req: Request) {
         try {
           const result =
             analysisType === "paid_ads_analysis"
-              ? await refreshPaidAdsAnalysisForCompetitor(
-                  targetCompetitorId,
-                  userId
-                )
-              : await refreshOrganicAnalysisForCompetitor(
-                  targetCompetitorId,
-                  userId
-                );
+              ? await refreshPaidAdsAnalysisForCompetitor(targetCompetitorId)
+              : await refreshOrganicAnalysisForCompetitor(targetCompetitorId);
           results.push(result);
         } catch (err) {
           console.error(

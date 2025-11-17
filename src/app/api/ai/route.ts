@@ -146,13 +146,21 @@ export async function POST(req: Request) {
 
     // All analyses in database for user
 
-    const { data: cached, error: cacheError } = await supabase
+    const cacheQuery = supabase
       .from("ai_analyses")
       .select("*")
       .eq("competitor_id", cacheQueryCompetitorId)
       .eq("analysis_type", analysisType)
-      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
+
+    // Competitive intelligence stays user-scoped
+    if (analysisType === "competitive_intelligence") {
+      cacheQuery.eq("user_id", user.id);
+    }
+
+    const { data: cached, error: cacheError } = await cacheQuery;
 
     if (cacheError) console.error("Supabase cache error:", cacheError);
 
@@ -518,7 +526,7 @@ Provide specific insights based on the real data provided.
       competitor_id: saveCompetitorId,
       analysis_type: analysisType,
       content: analysis,
-      user_id: user.id,
+      user_id: analysisType === "competitive_intelligence" ? user.id : null,
       expires_at: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
     };
 

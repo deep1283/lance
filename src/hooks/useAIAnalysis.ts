@@ -85,15 +85,21 @@ async function getAIAnalysis(
       }
     }
 
-    const { data, error } = await supabase
+    const analysisQuery = supabase
       .from("ai_analyses")
       .select("content")
-      .eq("user_id", userId)
       .eq("analysis_type", analysisType)
       .eq("competitor_id", lookupCompetitorId)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
+
+    // Competitive intelligence stays user-scoped
+    if (analysisType === "competitive_intelligence") {
+      analysisQuery.eq("user_id", userId);
+    }
+
+    const { data, error } = await analysisQuery;
 
     if (error && error.code !== "PGRST116") {
       throw error;
