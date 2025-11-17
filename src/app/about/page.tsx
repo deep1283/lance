@@ -1,7 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 const highlights = [
   {
@@ -80,6 +86,102 @@ const termsSections = [
 
 const AboutPage = () => {
   const [showTerms, setShowTerms] = useState(false);
+  const [checkoutReady, setCheckoutReady] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [paymentMessage, setPaymentMessage] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<
+    "success" | "warning" | "error" | null
+  >(null);
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => setCheckoutReady(true);
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handleCheckout = async () => {
+    setCheckoutError(null);
+    setPaymentMessage(null);
+    setPaymentStatus(null);
+    if (!checkoutReady || !window.Razorpay) {
+      setCheckoutError("Checkout is still loading. Please try again in a moment.");
+      return;
+    }
+    if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
+      setCheckoutError("Razorpay key is not configured.");
+      return;
+    }
+    try {
+      setProcessing(true);
+      const amount = 409900; // ₹4099.00 in paise
+      const res = await fetch("/api/payments/razorpay/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount, currency: "INR" }),
+      });
+      const { order, error } = await res.json().catch(() => ({}));
+      if (!res.ok || error || !order) {
+        setCheckoutError(
+          error || "Unable to create Razorpay order. Please try again."
+        );
+        setProcessing(false);
+        return;
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: "LanceIQ",
+        description: "Subscription",
+        order_id: order.id,
+        handler: async (response: any) => {
+          try {
+            const verifyRes = await fetch("/api/payments/razorpay/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            const verifyJson = await verifyRes.json();
+            if (verifyRes.ok && verifyJson.valid) {
+              setPaymentMessage("Payment verified successfully.");
+              setPaymentStatus("success");
+            } else {
+              setPaymentMessage(
+                "Payment received but verification failed. Please contact support."
+              );
+              setPaymentStatus("warning");
+            }
+          } catch (err) {
+            console.error("Verification error", err);
+            setPaymentMessage(
+              "Payment received but verification failed. Please contact support."
+            );
+            setPaymentStatus("warning");
+          }
+        },
+        theme: { color: "#5425B0" },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error("Checkout error", err);
+      setCheckoutError("Failed to start checkout. Please try again.");
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-black via-[#0b0620] to-black text-white">
@@ -156,6 +258,34 @@ const AboutPage = () => {
             <li>• Ability to pause or upgrade plans mid-cycle</li>
             <li>• Automated reminders for upcoming renewals</li>
           </ul>
+          <div className="mt-6">
+            <button
+              onClick={handleCheckout}
+              disabled={!checkoutReady || processing}
+              className="w-full sm:w-auto px-5 py-3 bg-[#5425B0] text-white font-semibold rounded-full hover:scale-105 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {processing ? "Opening Checkout..." : "Pay Securely with Razorpay"}
+            </button>
+            {paymentMessage && (
+              <div
+                className={`mt-3 text-sm px-4 py-3 rounded-lg border ${
+                  paymentStatus === "success"
+                    ? "bg-emerald-500/10 border-emerald-500 text-emerald-200"
+                    : paymentStatus === "warning"
+                    ? "bg-amber-500/10 border-amber-500 text-amber-200"
+                    : "bg-rose-500/10 border-rose-500 text-rose-200"
+                }`}
+              >
+                {paymentMessage}
+              </div>
+            )}
+            {checkoutError && (
+              <p className="text-xs text-red-400 mt-2">{checkoutError}</p>
+            )}
+            <p className="text-xs text-gray-400 mt-2">
+              You&apos;ll be redirected to Razorpay. 
+            </p>
+          </div>
         </div>
       </section>
 
