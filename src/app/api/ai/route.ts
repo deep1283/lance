@@ -146,21 +146,20 @@ export async function POST(req: Request) {
 
     // All analyses in database for user
 
-    const cacheQuery = supabase
+    let cacheQuery = supabase
       .from("ai_analyses")
       .select("*")
       .eq("competitor_id", cacheQueryCompetitorId)
       .eq("analysis_type", analysisType)
       .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(1);
 
     // Competitive intelligence stays user-scoped
     if (analysisType === "competitive_intelligence") {
-      cacheQuery.eq("user_id", user.id);
+      cacheQuery = cacheQuery.eq("user_id", user.id);
     }
 
-    const { data: cached, error: cacheError } = await cacheQuery;
+    const { data: cached, error: cacheError } = await cacheQuery.maybeSingle();
 
     if (cacheError) console.error("Supabase cache error:", cacheError);
 
