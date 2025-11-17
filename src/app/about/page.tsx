@@ -140,7 +140,7 @@ const AboutPage = () => {
     }
     try {
       setProcessing(true);
-      const amount = 409900; // ₹4099.00 in paise
+      const amount = 100; // ₹4099.00 in paise
       const res = await fetch("/api/payments/razorpay/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
