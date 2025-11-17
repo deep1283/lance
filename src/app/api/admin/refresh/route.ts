@@ -262,22 +262,42 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { competitorId, analysisType, userId } = body;
 
-    if (!competitorId || !analysisType || !userId) {
+    if (!analysisType) {
       return NextResponse.json(
-        { error: "Missing required parameters" },
+        { error: "analysisType is required" },
         { status: 400 }
       );
     }
 
-    // Get user from database
-    const { data: userData, error: userError } = await supabase
-      .from("users")
-      .select("id")
-      .eq("id", userId)
-      .single();
+    // Validation per type
+    if (analysisType === "competitive_intelligence") {
+      if (!userId || !competitorId) {
+        return NextResponse.json(
+          { error: "userId and competitorId are required for competitive_intelligence" },
+          { status: 400 }
+        );
+      }
+    } else {
+      // For paid/organic allow either userId (refresh all for the user) or a single competitorId fallback
+      if (!userId && !competitorId) {
+        return NextResponse.json(
+          { error: "userId or competitorId is required for this analysis type" },
+          { status: 400 }
+        );
+      }
+    }
 
-    if (userError || !userData) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    // If a userId is provided, validate it (used for multi-competitor refresh)
+    if (userId) {
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("id")
+        .eq("id", userId)
+        .single();
+
+      if (userError || !userData) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
     }
 
     // Refresh paid ads or organic analyses for all competitors
@@ -285,13 +305,19 @@ export async function POST(req: Request) {
       analysisType === "paid_ads_analysis" ||
       analysisType === "organic_content_analysis"
     ) {
-      const competitorIds = await getCompetitorIdsForUser(userId);
+      // Determine which competitors to refresh
+      let competitorIds: string[] = [];
 
-      if (!competitorIds.length) {
-        return NextResponse.json(
-          { error: "No competitors found for this user" },
-          { status: 404 }
-        );
+      if (userId) {
+        competitorIds = await getCompetitorIdsForUser(userId);
+        if (!competitorIds.length) {
+          return NextResponse.json(
+            { error: "No competitors found for this user" },
+            { status: 404 }
+          );
+        }
+      } else if (competitorId) {
+        competitorIds = [competitorId];
       }
 
       const results: Array<{
