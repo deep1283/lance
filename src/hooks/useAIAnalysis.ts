@@ -85,21 +85,20 @@ async function getAIAnalysis(
       }
     }
 
-    const analysisQuery = supabase
+    let analysisQuery = supabase
       .from("ai_analyses")
       .select("content")
       .eq("analysis_type", analysisType)
       .eq("competitor_id", lookupCompetitorId)
       .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(1);
 
     // Competitive intelligence stays user-scoped
     if (analysisType === "competitive_intelligence") {
-      analysisQuery.eq("user_id", userId);
+      analysisQuery = analysisQuery.eq("user_id", userId);
     }
 
-    const { data, error } = await analysisQuery;
+    const { data, error } = await analysisQuery.maybeSingle();
 
     if (error && error.code !== "PGRST116") {
       throw error;
