@@ -3,9 +3,30 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+type RazorpayResponse = {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+};
+
+type RazorpayOptions = {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  handler: (response: RazorpayResponse) => void;
+  theme?: { color: string };
+};
+
+type RazorpayInstance = {
+  open: () => void;
+};
+
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
   }
 }
 
@@ -141,7 +162,7 @@ const AboutPage = () => {
         name: "LanceIQ",
         description: "Subscription",
         order_id: order.id,
-        handler: async (response: any) => {
+        handler: async (response: RazorpayResponse) => {
           try {
             const verifyRes = await fetch("/api/payments/razorpay/verify", {
               method: "POST",
