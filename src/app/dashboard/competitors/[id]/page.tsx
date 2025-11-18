@@ -62,7 +62,14 @@ const LOG_T = Math.log(1 + 50); // T = 50
 const LOG_LIKES_DEN = Math.log10(100000);
 const COMMENT_WEIGHT = 3;
 
-const scoreReel = (creative: any, followers: number) => {
+type ScoredCreative = Creative & {
+  likes_count?: number | null;
+  comments_count?: number | null;
+  views_count?: number | null;
+  is_boosted?: boolean | null;
+};
+
+const scoreReel = (creative: ScoredCreative, followers: number) => {
   const likes = creative.likes_count || 0;
   const comments = creative.comments_count || 0;
   const views = creative.views_count || 0;
@@ -78,7 +85,7 @@ const scoreReel = (creative: any, followers: number) => {
   return mb * (0.9 * ner + wv * ve);
 };
 
-const scoreImage = (creative: any, followers: number) => {
+const scoreImage = (creative: ScoredCreative, followers: number) => {
   const likes = creative.likes_count || 0;
   const comments = creative.comments_count || 0;
   const isBoosted = creative.is_boosted === true;
@@ -313,8 +320,9 @@ const CompetitorDetailPage: React.FC = () => {
     (creative) => !creative.is_boosted
   );
   const competitorFollowers =
-    (competitor as any)?.followers && (competitor as any)?.followers > 0
-      ? Number((competitor as any).followers)
+    (competitor as unknown as { followers?: number })?.followers &&
+    (competitor as unknown as { followers?: number })?.followers! > 0
+      ? Number((competitor as unknown as { followers?: number }).followers)
       : 0;
 
   return (
@@ -1397,10 +1405,10 @@ const CompetitorDetailPage: React.FC = () => {
                             );
 
                             const imageScores = imagePosts.map((c) =>
-                              scoreImage(c, competitorFollowers)
+                              scoreImage(c as ScoredCreative, competitorFollowers)
                             );
                             const videoScores = videoPosts.map((c) =>
-                              scoreReel(c, competitorFollowers)
+                              scoreReel(c as ScoredCreative, competitorFollowers)
                             );
 
                             const totalImageScore = imageScores.reduce(

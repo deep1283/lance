@@ -29,15 +29,21 @@ export async function GET(req: Request) {
     );
   }
 
+  type CreativeRow = {
+    competitor_id: string;
+    posted_at: string | null;
+    competitors?: { name?: string | null } | null;
+  };
+
   const summaries = new Map<
     string,
     { competitorId: string; name: string; count: number; latestPostedAt: string }
   >();
 
-  (data || []).forEach((row) => {
-    const id = row.competitor_id as string;
-    const name = (row as any)?.competitors?.name || "Unknown";
-    const postedAt = row.posted_at as string;
+  ((data || []) as CreativeRow[]).forEach((row) => {
+    const id = row.competitor_id;
+    const name = row.competitors?.name || "Unknown";
+    const postedAt = row.posted_at || "";
 
     if (!summaries.has(id)) {
       summaries.set(id, {
