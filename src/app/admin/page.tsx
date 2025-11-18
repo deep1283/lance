@@ -19,14 +19,27 @@ interface User {
   email: string;
 }
 
+interface CompetitorCreativeSummary {
+  competitorId: string;
+  name: string;
+  count: number;
+  latestPostedAt: string;
+}
+
 const AdminDashboard: React.FC = () => {
   const [token, setToken] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
   const [users, setUsers] = useState<UserAnalysis[]>([]);
   const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [competitorCreatives, setCompetitorCreatives] = useState<
+    CompetitorCreativeSummary[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState<string | null>(null);
   const [strategyRefreshing, setStrategyRefreshing] = useState<string | null>(
+    null
+  );
+  const [competitorRefreshing, setCompetitorRefreshing] = useState<string | null>(
     null
   );
 
@@ -41,6 +54,7 @@ const AdminDashboard: React.FC = () => {
       setAuthenticated(true);
       fetchUsers();
       fetchAllUsers();
+      fetchCreatives();
     } else {
       alert("Invalid token");
     }
@@ -61,6 +75,54 @@ const AdminDashboard: React.FC = () => {
       setAllUsers(data.users || []);
     } catch (err) {
       console.error("Error fetching all users:", err);
+    }
+  };
+
+  // Fetch creatives summary by competitor
+  const fetchCreatives = async () => {
+    try {
+      const response = await fetch("/api/admin/creatives", {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_ADMIN_SECRET}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch competitor creatives");
+      }
+      const data = await response.json();
+      setCompetitorCreatives(data.competitors || []);
+    } catch (err) {
+      console.error("Error fetching competitor creatives:", err);
+    }
+  };
+
+  const handleCompetitorRefresh = async (
+    competitorId: string,
+    analysisType: "paid_ads_analysis" | "organic_content_analysis"
+  ) => {
+    setCompetitorRefreshing(`${competitorId}-${analysisType}`);
+    try {
+      const response = await fetch("/api/admin/refresh", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          competitorId,
+          analysisType,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to refresh analysis");
+      }
+
+      alert(`Refreshed ${analysisType} for ${competitorId}`);
+    } catch (err) {
+      console.error("Error refreshing competitor analysis:", err);
+      alert("Failed to refresh competitor analysis");
+    } finally {
+      setCompetitorRefreshing(null);
     }
   };
 
@@ -260,6 +322,88 @@ const AdminDashboard: React.FC = () => {
             ))
           )}
         </div>
+      </div>
+
+      {/* Creatives by Competitor */}
+      <div className="bg-gray-800 rounded-lg p-6 mb-8">
+        <h2 className="text-xl font-semibold text-white mb-4">
+          Creatives by Competitor
+        </h2>
+        <p className="text-gray-300 mb-4">
+          Count of scraped creatives per competitor (latest post date included).
+        </p>
+        {competitorCreatives.length === 0 ? (
+          <div className="text-gray-400 text-sm">No data yet.</div>
+        ) : (
+          <div className="space-y-3">
+            {competitorCreatives.map((comp) => (
+              <div
+                key={comp.competitorId}
+                className="flex flex-col gap-3 p-4 bg-gray-700 rounded-lg"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="text-white font-medium text-sm">
+                      {comp.name}
+                    </div>
+                    <div className="text-gray-400 text-xs font-mono">
+                      {comp.competitorId}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-white font-semibold text-lg">
+                      {comp.count} creatives
+                    </div>
+                    {comp.latestPostedAt && (
+                      <div className="text-gray-400 text-xs">
+                        Latest:{" "}
+                        {new Date(comp.latestPostedAt).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() =>
+                      handleCompetitorRefresh(
+                        comp.competitorId,
+                        "paid_ads_analysis"
+                      )
+                    }
+                    disabled={
+                      competitorRefreshing ===
+                      `${comp.competitorId}-paid_ads_analysis`
+                    }
+                    className="px-3 py-2 bg-violet-600 rounded hover:bg-violet-700 disabled:opacity-50 text-sm"
+                  >
+                    {competitorRefreshing ===
+                    `${comp.competitorId}-paid_ads_analysis`
+                      ? "Refreshing..."
+                      : "Refresh Paid Ads"}
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleCompetitorRefresh(
+                        comp.competitorId,
+                        "organic_content_analysis"
+                      )
+                    }
+                    disabled={
+                      competitorRefreshing ===
+                      `${comp.competitorId}-organic_content_analysis`
+                    }
+                    className="px-3 py-2 bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 text-sm"
+                  >
+                    {competitorRefreshing ===
+                    `${comp.competitorId}-organic_content_analysis`
+                      ? "Refreshing..."
+                      : "Refresh Organic"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* AI Analysis Section */}

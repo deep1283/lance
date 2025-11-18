@@ -55,6 +55,43 @@ const getMediaInfo = (item: { media_url?: string; post_type?: string }) => {
   return { type: "image", url: item.media_url };
 };
 
+// Engagement scoring helpers (matches reels/images formula)
+const clamp = (num: number, min: number, max: number) =>
+  Math.min(Math.max(num, min), max);
+const LOG_T = Math.log(1 + 50); // T = 50
+const LOG_LIKES_DEN = Math.log10(100000);
+const COMMENT_WEIGHT = 3;
+
+const scoreReel = (creative: any, followers: number) => {
+  const likes = creative.likes_count || 0;
+  const comments = creative.comments_count || 0;
+  const views = creative.views_count || 0;
+  const isBoosted = creative.is_boosted === true;
+  if (views <= 0 || followers <= 0) return 0;
+
+  const er = (likes + COMMENT_WEIGHT * comments) / views;
+  const ner = clamp((100 * Math.log(1 + 500 * er)) / LOG_T, 0, 100);
+  const ve = clamp((100 * Math.log(1 + views / followers)) / LOG_T, 0, 100);
+  const wv = isBoosted ? 0.05 : 0.15;
+  const mb = isBoosted ? 0.9 : 1.0;
+
+  return mb * (0.9 * ner + wv * ve);
+};
+
+const scoreImage = (creative: any, followers: number) => {
+  const likes = creative.likes_count || 0;
+  const comments = creative.comments_count || 0;
+  const isBoosted = creative.is_boosted === true;
+  if (followers <= 0) return 0;
+
+  const erf = (likes + COMMENT_WEIGHT * comments) / followers;
+  const nerf = clamp((100 * Math.log(1 + 500 * erf)) / LOG_T, 0, 100);
+  const vfl = (100 * Math.log10(likes + 1)) / LOG_LIKES_DEN;
+  const mb = isBoosted ? 0.9 : 1.0;
+
+  return mb * (0.9 * nerf + 0.1 * vfl);
+};
+
 const CompetitorDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
@@ -275,6 +312,10 @@ const CompetitorDetailPage: React.FC = () => {
   const nonBoostedCreatives = allCreatives.filter(
     (creative) => !creative.is_boosted
   );
+  const competitorFollowers =
+    (competitor as any)?.followers && (competitor as any)?.followers > 0
+      ? Number((competitor as any).followers)
+      : 0;
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
@@ -1347,7 +1388,7 @@ const CompetitorDetailPage: React.FC = () => {
                       <ResponsiveContainer width="100%" height={300}>
                         <BarChart
                           data={(() => {
-                            // Use non-boosted creatives for this comparison
+                            // Use non-boosted creatives and engagement formula
                             const imagePosts = nonBoostedCreatives.filter(
                               (c) => c.post_type === "image"
                             );
@@ -1355,45 +1396,45 @@ const CompetitorDetailPage: React.FC = () => {
                               (c) => c.post_type === "reel"
                             );
 
-                            const imageEngagement = imagePosts.reduce(
-                              (sum, creative) =>
-                                sum + (creative.likes_count || 0),
+                            const imageScores = imagePosts.map((c) =>
+                              scoreImage(c, competitorFollowers)
+                            );
+                            const videoScores = videoPosts.map((c) =>
+                              scoreReel(c, competitorFollowers)
+                            );
+
+                            const totalImageScore = imageScores.reduce(
+                              (a, b) => a + b,
                               0
                             );
-                            const videoEngagement = videoPosts.reduce(
-                              (sum, creative) => {
-                                return (
-                                  sum +
-                                  (creative.likes_count || 0) +
-                                  (creative.views_count || 0)
-                                );
-                              },
+                            const totalVideoScore = videoScores.reduce(
+                              (a, b) => a + b,
                               0
                             );
 
                             const avgImageEngagement =
-                              imagePosts.length > 0
+                              imageScores.length > 0
                                 ? Math.round(
-                                    imageEngagement / imagePosts.length
+                                    totalImageScore / imageScores.length
                                   )
                                 : 0;
                             const avgVideoEngagement =
-                              videoPosts.length > 0
+                              videoScores.length > 0
                                 ? Math.round(
-                                    videoEngagement / videoPosts.length
+                                    totalVideoScore / videoScores.length
                                   )
                                 : 0;
 
                             return [
                               {
                                 type: "Image",
-                                engagement: imageEngagement,
+                                engagement: Math.round(totalImageScore),
                                 posts: imagePosts.length,
                                 avgEngagement: avgImageEngagement,
                               },
                               {
                                 type: "Video",
-                                engagement: videoEngagement,
+                                engagement: Math.round(totalVideoScore),
                                 posts: videoPosts.length,
                                 avgEngagement: avgVideoEngagement,
                               },
@@ -1425,8 +1466,8 @@ const CompetitorDetailPage: React.FC = () => {
                             formatter={(value, name) => {
                               if (name === "engagement")
                                 return [
-                                  `${value} total likes`,
-                                  "Total Engagement",
+                                  `${value}`,
+                                  "Engagement Score",
                                 ];
                               if (name === "posts")
                                 return [`${value} posts`, "Total Posts"];
