@@ -14,6 +14,7 @@ export interface Competitor {
   logo_url?: string;
   industry?: string;
   status: string;
+  followers?: number;
   created_at: string;
   updated_at: string;
 }

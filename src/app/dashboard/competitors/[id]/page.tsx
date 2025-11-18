@@ -319,11 +319,10 @@ const CompetitorDetailPage: React.FC = () => {
   const nonBoostedCreatives = allCreatives.filter(
     (creative) => !creative.is_boosted
   );
-  const competitorFollowers =
-    (competitor as unknown as { followers?: number })?.followers &&
-    (competitor as unknown as { followers?: number })?.followers! > 0
-      ? Number((competitor as unknown as { followers?: number }).followers)
-      : 0;
+  const competitorFollowers = Math.max(
+    0,
+    Number(competitor.followers ?? 0)
+  );
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
